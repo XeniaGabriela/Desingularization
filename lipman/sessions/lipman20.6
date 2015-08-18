@@ -1,0 +1,220 @@
+ring r=integer,(x,y),dp;
+> ideal i=x3-y2;
+> slocus(i);
+_[1]=x3-y2
+_[2]=3x2
+_[3]=-2y
+> dim(slocus(i));
+// ** _ is no standard basis
+0
+> ideal s=slocus(i);
+> mydimension(s);
+1
+> proc lipman(ideal i)
+{
+       def BAS=basering;
+       ideal s = slocus(i);
+
+       if (dim(s) == -1)
+       {
+             ideal lip = i;
+
+             if (defined(liph))
+             {
+                  ideal lipmap = liph;
+             }
+
+             else
+             {
+                  ideal lipmap = maxideal(1);
+             }
+
+             export(lip);
+             export(lipmap);
+             result = BAS,"lip","lipmap";
+             return(result);
+       }
+          
+       int d2 = mydimension(s);
+         
+       if (d2 == 0)
+       {
+             list b2 = blowup2(i);
+       }
+
+       else
+       {
+              if(charstr(basering)=="integer")
+              {
+                    list m = mynormal(i);
+                    def Newrz = m[1];
+                    setring Newrz;
+                    ideal i = nor;
+                    ideal liph = normap;
+                    export(liph);
+                    list result = lipman(i);
+                    setring BAS;
+                    return result;
+              }
+
+              else
+              {
+                    list n = normal(i);
+                    def Newrk = n[1];
+                    setring Newrk;
+                    ideal i = norid;
+                    ideal liph = normap;
+                    export(liph);
+                    list result = lipman(i);
+                    setring BAS;
+                    return(result);
+              }
+       }
+};
+   
+. ;
+> i;
+i[1]=x3-y2
+> lipman(i);
+// ** s is no standard basis
+1
+// ** _ is no standard basis
+// ** _ is no standard basis
+NewR1
+//   coeff. ring is : Integers
+//   number of vars : 1
+//        block   1 : ordering dp
+//                  : names    T(2)
+//        block   2 : ordering C
+ephi[1]=T(2)^2
+ephi[2]=T(2)^3
+ephi[3]=T(2)
+// ** `ephi` is already global
+c1[1]=T(2)^3
+c2[1]=0
+0
+//   coeff. ring is : Integers
+//   number of vars : 1
+//        block   1 : ordering dp
+//                  : names    T(2)
+//        block   2 : ordering C
+normap[1]=T(2)^2
+normap[2]=T(2)^3
+normap[3]=T(2)
+Singular : signal 11 (v: 3120/ 13650 ):
+current line:>>  i        = i+minor(jacob(i),cod);<<
+Segment fault/Bus error occurred at 0 because of 10283 (r:1308563108)
+please inform the authors
+trying to restart...
+Auf Wiedersehen.
+
+NEUER VERSUCH:
+
+> proc lipman(ideal i)
+{
+       def BAS=basering;
+       
+       if (size(i) == 0)
+       {  
+             ideal s = 1;
+       }
+
+       else
+       {
+       ideal s = slocus(i);
+       }
+
+       if (dim(s) == -1)
+       {
+             ideal lip = i;
+
+             if (defined(liph))
+             {
+                  ideal lipmap = liph;
+             }
+
+             else
+             {
+                  ideal lipmap = maxideal(1);
+             }
+
+             export(lip);
+             export(lipmap);
+             list result = BAS,"lip","lipmap";
+             return(result);
+       }
+          
+       int d2 = mydimension(s);
+         
+       if (d2 == 0)
+       {
+             list b2 = blowup2(i);
+       }
+
+       else
+       {
+              if(charstr(basering)=="integer")
+              {
+                    list m = mynormal(i);
+                    def Newrz = m[1];
+                    setring Newrz;
+                    ideal i = nor;
+                    ideal liph = normap;
+                    export(liph);
+                    list result = lipman(i);
+                    setring BAS;
+                    return(result);
+              }
+
+              else
+              {
+                    list n = normal(i);
+                    def Newrk = n[1];
+                    setring Newrk;
+                    ideal i = norid;
+                    ideal liph = normap;
+                    export(liph);
+                    list result = lipman(i);
+                    setring BAS;
+                    return(result);
+              }
+       }
+};
+// ** redefining lipman **
+> lipman(i);
+// ** s is no standard basis
+1
+// ** _ is no standard basis
+// ** _ is no standard basis
+NewR1
+//   coeff. ring is : Integers
+//   number of vars : 1
+//        block   1 : ordering dp
+//                  : names    T(2)
+//        block   2 : ordering C
+ephi[1]=T(2)^2
+ephi[2]=T(2)^3
+ephi[3]=T(2)
+// ** `ephi` is already global
+c1[1]=T(2)^3
+c2[1]=0
+0
+//   coeff. ring is : Integers
+//   number of vars : 1
+//        block   1 : ordering dp
+//                  : names    T(2)
+//        block   2 : ordering C
+normap[1]=T(2)^2
+normap[2]=T(2)^3
+normap[3]=T(2)
+[1]:
+   //   coeff. ring is : Integers
+//   number of vars : 1
+//        block   1 : ordering dp
+//                  : names    T(2)
+//        block   2 : ordering C
+[2]:
+   lip
+[3]:
+   lipmap
+>                                                              // JAAAAA!!! lag an slocus(0)

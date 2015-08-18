@@ -1,0 +1,982 @@
+                     SINGULAR                                 /
+ A Computer Algebra System for Polynomial Computations       /   version 3-1-2
+                                                           0<
+ by: W. Decker, G.-M. Greuel, G. Pfister, H. Schoenemann     \   Oct 2010
+FB Mathematik der Universitaet, D-67653 Kaiserslautern        \
+> ring r=integer,(x,z),dp;
+// ** You are using coefficient rings which are not fields.
+// ** Please note that only limited functionality is available
+// ** for these coefficients.
+// ** 
+// ** The following commands are meant to work:
+// ** - basic polynomial arithmetic
+// ** - std
+// ** - syz
+// ** - lift
+// ** - reduce
+> ideal i=z-x3-3xz2-8z3;
+> LIB "primdecint.lib";
+// ** loaded /usr/share/Singular/LIB/primdecint.lib (13403,2010-10-06)
+// ** loaded /usr/share/Singular/LIB/crypto.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/poly.lib (12443,2010-01-19)
+// ** loaded /usr/share/Singular/LIB/ring.lib (12231,2009-11-02)
+// ** loaded /usr/share/Singular/LIB/primdec.lib (13403,2010-10-06)
+// ** loaded /usr/share/Singular/LIB/absfact.lib (13534,2010-10-18)
+// ** loaded /usr/share/Singular/LIB/triang.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/matrix.lib (12898,2010-06-23)
+// ** loaded /usr/share/Singular/LIB/nctools.lib (13467,2010-10-13)
+// ** loaded /usr/share/Singular/LIB/random.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/elim.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/inout.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/general.lib (13499,2010-10-15)
+> LIB "all.lib";
+
+proc testideal(i) {
+	if(i == 0)
+	{
+		ideal result=1;
+		return(result);
+	}
+	i=std(i);
+        int ht=nvars(basering)-dim(i);
+	ideal j=minor(jacob(i),ht);
+	ideal tmp=i,j;
+	ideal result=radical(tmp);
+	return(result);
+};
+// ** loaded /usr/share/Singular/LIB/all.lib (13536,2010-10-18)
+// ** loaded /usr/share/Singular/LIB/qmatrix.lib (13334,2010-09-29)
+// ** loaded /usr/share/Singular/LIB/perron.lib (12231,2009-11-02)
+// ** loaded /usr/share/Singular/LIB/ncdecomp.lib (12790,2010-05-14)
+// ** loaded /usr/share/Singular/LIB/ncalg.lib (13403,2010-10-06)
+// ** loaded /usr/share/Singular/LIB/involut.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/gkdim.lib (12235,2009-11-03)
+// ** loaded /usr/share/Singular/LIB/freegb.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/dmodvar.lib (13492,2010-10-14)
+// ** loaded /usr/share/Singular/LIB/dmodapp.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/dmod.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/central.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/bfun.lib (13483,2010-10-13)
+// ** loaded /usr/share/Singular/LIB/zeroset.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/weierstr.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/tropical.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/toric.lib (12330,2009-11-26)
+// ** loaded /usr/share/Singular/LIB/teachstd.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/surfex.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/surf.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/stratify.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/spectrum.lib (12231,2009-11-02)
+// ** loaded /usr/share/Singular/LIB/spcurve.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/solve.lib (12231,2009-11-02)
+// ** loaded /usr/share/Singular/LIB/signcond.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/sing4ti2.lib (13269,2010-09-23)
+// ** loaded /usr/share/Singular/LIB/sing.lib (12394,2010-01-04)
+// ** loaded /usr/share/Singular/LIB/sheafcoh.lib (13328,2010-09-29)
+// ** loaded /usr/share/Singular/LIB/sagbi.lib (13505,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/rootsur.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/rootsmr.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/rinvar.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/reszeta.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/resolve.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/resgraph.lib (12231,2009-11-02)
+// ** loaded /usr/share/Singular/LIB/resbin.lib $Id: resbin.lib$
+// ** loaded /usr/share/Singular/LIB/reesclos.lib (1.32,2001/01/16)
+// ** loaded /usr/share/Singular/LIB/redcgs.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/realrad.lib (13352,2010-09-30)
+// ** loaded /usr/share/Singular/LIB/qhmoduli.lib (12790,2010-05-14)
+// ** loaded /usr/share/Singular/LIB/primitiv.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/presolve.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/polymake.lib (12231,2009-11-02)
+// ** loaded /usr/share/Singular/LIB/pointid.lib (12231,2009-11-02)
+// ** loaded /usr/share/Singular/LIB/phindex.lib (12571,2010-03-01)
+// ** loaded /usr/share/Singular/LIB/ntsolve.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/normaliz.lib (12790,2010-05-14)
+// ** loaded /usr/share/Singular/LIB/normal.lib (13488,2010-10-14)
+// ** loaded /usr/share/Singular/LIB/noether.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/mregular.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/mprimdec.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/monomialideal.lib (13403,2010-10-06)
+// ** loaded /usr/share/Singular/LIB/mondromy.lib (12231,2009-11-02)
+// ** loaded /usr/share/Singular/LIB/modstd.lib (13536,2010-10-18)
+// ** loaded /usr/share/Singular/LIB/makedbm.lib (12231,2009-11-02)
+// ** loaded /usr/share/Singular/LIB/lll.lib (12231,2009-11-02)
+// ** loaded /usr/share/Singular/LIB/linalg.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/latex.lib (13477,2010-10-13)
+// ** loaded /usr/share/Singular/LIB/kskernel.lib (12231,2009-11-02)
+// ** loaded /usr/share/Singular/LIB/jacobson.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/intprog.lib (12231,2009-11-02)
+// ** loaded /usr/share/Singular/LIB/hyperel.lib (12231,2009-11-02)
+// ** loaded /usr/share/Singular/LIB/homolog.lib (12381,2009-12-11)
+// ** loaded /usr/share/Singular/LIB/hnoether.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/grwalk.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/groups.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/graphics.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/gmssing.lib (13548,2010-10-19)
+// ** loaded /usr/share/Singular/LIB/gmspoly.lib (12529,2010-02-08)
+// ** loaded /usr/share/Singular/LIB/finvar.lib (13326,2010-09-29)
+// ** loaded /usr/share/Singular/LIB/equising.lib (13483,2010-10-13)
+// ** loaded /usr/share/Singular/LIB/deform.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/decodegb.lib (13483,2010-10-13)
+// ** loaded /usr/share/Singular/LIB/curvepar.lib (13536,2010-10-18)
+// ** loaded /usr/share/Singular/LIB/control.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/compregb.lib (12231,2009-11-02)
+// ** loaded /usr/share/Singular/LIB/classify.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/cimonom.lib (13536,2010-10-18)
+// ** loaded /usr/share/Singular/LIB/brnoeth.lib (13312,2010-09-29)
+// ** loaded /usr/share/Singular/LIB/atkins.lib (12932,2010-06-30)
+// ** loaded /usr/share/Singular/LIB/assprimeszerodim.lib (13536,2010-10-18)
+// ** loaded /usr/share/Singular/LIB/arcpoint.lib (12231,2009-11-02)
+// ** loaded /usr/share/Singular/LIB/algebra.lib (12436,2010-01-15)
+// ** loaded /usr/share/Singular/LIB/alexpoly.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/aksaka.lib (13536,2010-10-18)
+// ** loaded /usr/share/Singular/LIB/ainvar.lib (13536,2010-10-18)
+> primdecZ(i);
+[1]:
+   [1]:
+      _[1]=x3+3xz2+8z3-z
+   [2]:
+      _[1]=x3+3xz2+8z3-z
+> isnor(i);
+   ? `isnor` is not defined
+   ? error occurred in or before STDIN line 43: `isnor(i);`
+> proc isnor(ideal i)
+{       def BAS = basering;
+
+        if (dim(i) == -1)
+        {
+            int isn = 1; 
+            return(isn);
+        }
+
+        ideal j = testideal(i);
+        qring q = std(i);
+        setring q;
+        ideal j = fetch(BAS,j);
+        poly a = j[1];
+	ideal aJJ=quotient(a*j,j);            
+	aJJ=std(aJJ);
+	ideal aa=a;
+	aa=std(aa);
+	ideal rf = interred(reduce(aJJ,aa));
+
+	if (size(rf)==0)
+        {
+         int isn = 1;
+        }
+         
+        else
+        {
+         int isn = 0;
+        }
+
+        return(isn);
+        setring BAS;
+};
+
+. ;
+> isnor(i);
+   ? not implemented for rings with rings as coeffients
+   ? error occurred in or before primdec.lib::radical line 5750: `    pr = facstd(i);`
+   ? leaving primdec.lib::radical
+   skipping text from `;` error at token `)`
+   ? leaving ::testideal
+   ? leaving ::isnor
+> LIB "all.lib";
+LIB "primdecint.lib";
+
+proc mydimension(ideal i) {
+	i = std(i);
+	def BAS = basering;
+        ideal r = 1;
+
+        if(size(i) == 0)
+        {        
+                return(nvars(BAS)+1);
+        }
+        
+        if (reduce(r,i) == 0)
+        {       
+                return(-1);
+        }
+           
+        if (charstr(BAS)=="integer")
+	{
+		if (deg(i[1]) == 0)
+		{
+			ideal i_ = i[2..size(i)];
+			ring r = 0,x(1..nvars(BAS)),dp;
+			ideal ii = fetch(BAS,i_);
+			ii = std(ii);
+			return(dim(ii));
+		}
+	
+		if (deg(i[size(i)]) == 0)
+		{
+			ideal i_ = i[1..size(i)-1] ;
+			ring r = 0,x(1..nvars(BAS)),dp;
+			ideal ii = fetch(BAS,i_);
+			ii = std(ii);
+			return(dim(ii));
+		}
+
+		ring r = 0,x(1..nvars(BAS)),dp;
+		ideal ii =fetch(BAS,i);
+		ii = std(ii);
+		return(dim(ii)+1);
+	}
+	else
+	{
+		return(dim(i));
+	}
+}
+
+proc myheight(i) {
+	i=std(i);
+	if(charstr(basering)=="integer")
+	{
+		return(nvars(basering)+1-mydimension(i));
+	}
+	else
+	{
+		return(nvars(basering)-dim(i));
+	}
+}
+
+proc myintersect(ideal i, ideal j) {
+	i=std(i);
+	j=std(j);
+	def BAS = basering;
+	if (charstr(BAS)=="integer")
+	{
+		string tempstr="ring r2=integer,("+varstr(BAS)+",t),dp;";
+	}
+	else
+	{
+		string tempstr="ring r2="+charstr(BAS)+",("varstr(BAS)+",t),dp;";
+	}
+	
+	execute(tempstr);
+	ideal J = 0;
+	int k;
+	ideal ii=fetch(BAS,i);
+	for(k=1; k <= size(ii); k++)
+	{
+		J=J,t*ii[k];
+	}
+	ideal jj=fetch(BAS,j);
+	for(k=1; k <= size(jj); k++)
+	{
+		J=J,(1-t)*jj[k];
+	}
+	ideal e=eliminate(J,t);
+	setring BAS;
+	return(fetch(r2,e));
+}
+
+proc mysat(ideal i, poly f)
+{
+	def BAS = basering	;
+	ring newR = integer,(X(1..nvars(BAS)),T),dp ;
+	map psi=BAS,maxideal(1);
+	ideal Q=psi(i),1-T*psi(f);
+	Q=std(Q);
+	ideal e=eliminate(Q,T);
+	setring BAS;
+	ideal result=fetch(newR,e);
+	return(result);
+}
+
+proc myradical(ideal i) 
+{
+	i=std(i);
+	def BAS = basering;
+	if (charstr(BAS)=="integer")
+	{
+		int j;
+		poly p = 1;
+		for(j = 1;j<=nvars(BAS);j++)
+		{
+			p = p*var(j);
+		}
+		ideal e = eliminate(i,p);
+		ideal radi=1;
+		if(e[1]==1 || e[1] == -1)
+		{
+			return(radi);
+		}
+		if(e[1]!=0)
+		{
+			string tempstr="int k="+string(e[1])+";";
+			execute(tempstr);
+			list prdiv = primefactors(k)[1];
+			for(j=1; j <= size(prdiv); j++)
+			{
+				ring rj = prdiv[j],x(1..nvars(BAS)),dp;
+				ideal radij = radical(fetch(BAS,i));
+				radij = std(radij);
+				setring BAS;
+				ideal radij2=fetch(rj,radij);
+				radij2=radij2,prdiv[j];
+				radij2 = std(radij2);
+				radi=myintersect(radi,radij2);
+                                kill rj,radij2;
+			}
+		}
+		else
+		{
+			poly g=1;
+			for(j=1; j<= size(i); j++)
+			{
+				g = g*leadcoef(i[j]);
+			}
+			ideal rig = i,g;
+			rig=myradical(rig);
+			ring rq=0,x(1..nvars(BAS)),dp;
+			ideal riq=radical(fetch(BAS,i));
+			riq=std(riq);
+			ideal B;
+			for(j=1;j<=size(riq);j++)
+			{
+				B[j]=cleardenom(riq[j]);
+			}
+			poly s=1;
+			for(j=1;j<=size(B);j++)
+			{
+				s=s*leadcoef(B[j]);
+			}
+			setring BAS;
+			ideal riginf=mysat(fetch(rq,B),fetch(rq,s));
+			radi=myintersect(rig,riginf);
+		}
+		return(radi);
+	} 
+        else 
+        {
+		return(radical(i));
+	}
+}
+
+proc myquotient(i,j1,j2) {
+	def BAS=basering;
+	int j;
+	ideal q=1;
+             
+        for(j=1; j <= size(j2); j++)
+        {
+		ideal s=j2[j],-j1,-i;
+		matrix m=matrix(syz(s));
+		m=m[1,1..ncols(m)];
+		matrix n[1][ncols(m)]=m[1,1..ncols(m)];
+		ideal qq=n;
+		q=intersect(q,qq);
+                kill m,n,qq,s;
+	}
+	return(std(q));
+}
+
+proc homjj(i,j) {
+	def BAS = basering;
+	poly a=j[1];
+	ideal aJJ=myquotient(i,a*j,j),i;            
+	aJJ=std(aJJ);
+	ideal aa=a;
+	aa=std(aa);
+	ideal rf = interred(reduce(aJJ,aa));
+
+	if (size(rf)==0) 
+        {                                      // j[1]*j:j = ideal(j[1]) modulo i                  
+		ideal homj=i;
+                ideal endphi=maxideal(1);
+		export(homj);
+                export(endphi);
+		list result=BAS,"homj","endphi",0;
+		return(result);
+        } 
+        else 
+        {
+		ideal f=j[1],rf;
+		int n = size(f);
+
+		ring newR1 = integer,(X(1..nvars(BAS)),T(1..n)),dp;
+
+                ideal f=fetch(BAS,f);
+		ideal i=fetch(BAS,i);
+		ideal Q=i;
+		poly a=fetch(BAS,a);
+		ideal af=a*f,i;
+
+		matrix T=matrix(ideal(T(1..n)),1,n);
+		int ii,jj,kk;
+		matrix A;
+		for(ii=2;ii<=n;ii++) {
+			for(jj=2;jj<=ii;jj++) {
+				A=lift(af,f[ii]*f[jj]);
+
+				// lift function is only working up to sign!
+				poly q=0;
+				for(kk=1;kk<=size(af);kk++)
+				{
+					q=q+af[kk]*A[kk,1];
+				}
+				
+				if (q == f[ii]*f[jj])
+				{
+					matrix AA[n][1]=A[1..n,1];
+				}
+				else
+				{
+					matrix AA[n][1]=-A[1..n,1];
+				}
+                               
+				Q = Q,ideal(T(ii)*T(jj) - T*AA);
+                                kill AA;
+                                kill q;
+			}
+		}
+
+		ideal fi=f,i;
+		matrix syzfi=matrix(syz(fi));
+		matrix syzfii[n][n]=syzfi[1..n,1..n];
+
+		Q=Q,ideal(T*syzfii);
+		Q=subst(Q,T(1),1);
+                
+		ring newR2 = integer,(X(1..nvars(BAS)),T(2..n)),dp;
+
+		ideal homj = imap(newR1,Q);
+		homj=std(homj);
+                ideal endphi=ideal(X(1..nvars(BAS)));
+		export(homj);
+                export(endphi);
+		list result = newR2,"homj","endphi",1;
+		return(result);
+	}
+}
+
+proc testideal(i) {
+	if(i == 0)
+	{
+		ideal result=1;
+		return(result);
+	}
+	i=std(i);
+	ideal j=minor(jacob(i),myheight(i));
+	ideal tmp=i,j;
+	ideal result=myradical(tmp);
+	return(result);
+}
+
+proc elimvar(ideal i)
+{
+	def BAS=basering;
+	int n=size(i);
+	int j;
+
+        if (defined(phi))
+        {ideal endphi=phi; kill phi;}
+
+        poly tt;
+        int pos;
+        for(j=1;j<=n;j++)
+	{                
+		// --- Schauen, ob lineare Monome in i[j] existieren
+	        tt=jet(i[j],1)-jet(i[j],0);
+		  // --- Monome gefunden
+		pos=0;
+		int k;
+		for(k=1;k<=size(tt);k++)
+		{
+			if ((leadcoef(tt[k]) == 1 || leadcoef(tt[k]) == -1) && (pos == 0))
+			{
+				pos=k;
+			}
+		}
+                kill k;
+
+            if (pos > 0)
+            { 
+		poly t=tt[pos];
+                kill tt;
+                kill pos;
+		if (deg(t) > 0 && (leadcoef(t) == 1 || leadcoef(t) == -1))
+		{
+			poly v=leadcoef(t)*t;
+                        attrib(v,"isSB",1);
+			int b = 0;
+			int k;
+			poly rest=i[j]-t;
+
+			for(k=1;k<=size(rest);k++)
+			{
+				if (reduce(rest[k],v) == 0)
+				{
+					b = 1;
+				}
+			}
+                        kill k;
+			if (b == 0)
+			{
+				if (leadcoef(t) == 1)
+				{
+					poly replace=-(i[j]-t);
+				}
+				else
+				{
+					poly replace=i[j]-t;       
+				}
+                                kill j;
+                                ideal QQ = subst(i,v,replace);
+                                QQ=simplify(QQ,2);
+                                ideal phi=subst(endphi,t,replace);
+                                string s=varstr(BAS);
+				string strv = string(v);
+				int p=find(s,strv);               
+
+				if (p > 1 && p < size(s))
+				{
+					string ns=string(s[1..p-1])+string(s[p+1+size(strv)..size(s)]);
+				}
+
+				if (p == 1)
+				{
+					string ns=string(s[2+size(strv)..size(s)]);
+				}
+				
+				if (p+size(strv)-1 == size(s))
+				{
+					string ns=string(s[1..size(s)-size(strv)-1]);
+				}
+				
+				string tmpstr="ring newR1 = integer,("+ns+"),dp;";
+
+				execute(tmpstr);
+				ideal i=imap(BAS,QQ);
+                                ideal phi=imap(BAS,phi);
+                                export(phi);
+				list result=elimvar(i);
+				result[4]=1;				
+			        setring BAS;
+				return (result);
+			}
+		}
+            }
+	}
+	ideal eli=i;
+	export(eli);
+        ideal ephi=endphi;
+        export(ephi);
+	list result = BAS,"eli","ephi",0;
+	return(result);
+}
+
+
+proc mynormal(ideal i) 
+{
+	def BAS=basering;
+	ideal j=testideal(i);                                           
+        list h=homjj(i,j);
+
+	if (h[4] == 0)
+	{
+		def NewR = h[1];
+		setring NewR;
+		ideal nor = homj;
+
+                if (defined(ephi))
+                {ideal normap = ephi;}
+                else
+                {ideal normap = endphi;}
+     
+		export(nor);
+                export(normap);
+		list result = BAS,"nor","normap";
+		setring BAS;
+		return(result);
+	}
+	else
+	{
+                def NewR = h[1];
+		setring NewR;
+		list e = elimvar(homj);
+		def NewR1 = e[1];
+		setring NewR1;
+                ideal i = std(eli);
+                ideal ii = fetch(BAS,i);
+                ii = std(ii);
+                ideal c1 = interred(reduce(ii,i));
+                ideal c2 = interred(reduce(i,ii));
+
+                if (size(c1)==0 && size(c2)==0)
+                {
+                ideal nor = i;
+                export(nor);
+                ideal normap = ephi;
+                export(normap);
+                list result = NewR1,"nor","normap";
+                setring BAS;
+                return(result);
+                }
+
+                else
+                {
+		list result = mynormal(i);
+		setring BAS;
+                return(result);
+                }
+              
+	}
+	
+}
+
+proc normalZ2(ideal i)
+{                                                                          // AM 8.9.GEÄNDERT!
+       def BAS=basering;
+       ideal irad=myradical(i);
+
+       if(size(reduce(irad,std(i))) != 0)
+       {
+           "WARNING! The input is not reduced!";
+           "We will continue with the reduced part of input";
+            i=irad;
+       }
+
+       list A=minAssZ(i);
+       int n=size(A);
+       int j;
+       list NL;
+       for(j=1;j<=n;j++)
+       { 
+           ideal NM(j)=A[j];
+           if (deg(NM(j)[1]) == 0)
+           {
+              int p = int(NM(j)[1]);
+              ring rnew=p,x(1..nvars(BAS)),dp; 
+              ideal NM(j) = fetch(BAS,NM(j));
+              list nn = normal(NM(j));
+              def r1 = nn[1][1];
+              setring r1;
+              ideal nor = norid;
+              export(nor);
+              NL[j]=r1,"nor","normap";
+              setring BAS;
+           }
+
+           else  
+           {      
+              NL[j] = mynormal(NM(j));
+           }
+       }
+       return(NL);
+}
+
+proc normalZ(ideal i)
+{                                                                          // ohne integers
+       def BAS=basering;
+       list L=primdecZ(i);
+
+       ideal irad=radical(i);
+       if(size(reduce(irad,std(i)))!=0)
+       {
+           "WARNING! The input is not reduced!";
+           "We will continue with the reduced part of input";
+            i=irad;
+       }
+
+       int n=size(L);
+       int j;
+       list NL;
+       for(j=1;j<=n;j++)
+               {
+                     ideal NM(j)=L[j][2];     
+                     NL[j]=mynormal(NM(j));
+
+               }
+        return(NL);
+};
+
+// ** loaded /usr/share/Singular/LIB/all.lib (13536,2010-10-18)
+// ** redefining primdecZ **
+// ** redefining primdecZ **
+// ** redefining minAssZ **
+// ** redefining minAssZ **
+// ** redefining heightZ **
+// ** redefining heightZ **
+// ** redefining radicalZ **
+// ** redefining radicalZ **
+// ** redefining equidimZ **
+// ** redefining equidimZ **
+// ** redefining intersectZ **
+// ** redefining intersectZ **
+// ** redefining modp **
+// ** redefining coefPrimeZ **
+// ** redefining coefZ **
+// ** redefining specialPowerZ **
+// ** redefining separatorsZ **
+// ** redefining extractZ **
+// ** redefining normalizeZ **
+// ** redefining satZ **
+// ** redefining prepareQuotientring **
+// ** redefining maxIndependSet **
+// ** redefining quotientOneZ **
+// ** redefining quotientZ **
+// ** redefining reduceZ **
+// ** redefining stdZ **
+// ** redefining addIdealZ **
+// ** redefining testPrimaryZ **
+// ** loaded /usr/share/Singular/LIB/primdecint.lib (13403,2010-10-06)
+// ** redefining testideal **
+. ;
+> list n=mynormal(i);
+> n;
+[1]:
+   //   coeff. ring is : Integers
+//   number of vars : 2
+//        block   1 : ordering dp
+//                  : names    x z
+//        block   2 : ordering C
+[2]:
+   nor
+[3]:
+   normap
+> def r1=n[1];
+> nor;
+nor[1]=-x3-3xz2-8z3+z
+> ideal j=testideal(i);
+> j;
+j[1]=1
+> ring rx=integer,(y,z),dp;
+> ideal i=y2z-1-3z2-8z3;
+> primdecZ(i);
+[1]:
+   [1]:
+      _[1]=y2z-8z3-3z2-1
+   [2]:
+      _[1]=y2z-8z3-3z2-1
+> mydimension(i);
+2
+> isnor(i);
+1
+> ideal j=testideal(i);
+> j;
+j[1]=-102
+j[2]=z+4127
+j[3]=y
+> primdecZ(j);
+[1]:
+   [1]:
+      _[1]=2
+      _[2]=z+1
+      _[3]=y
+   [2]:
+      _[1]=2
+      _[2]=z+1
+      _[3]=y
+[2]:
+   [1]:
+      _[1]=3
+      _[2]=z-1
+      _[3]=y
+   [2]:
+      _[1]=3
+      _[2]=z-1
+      _[3]=y
+[3]:
+   [1]:
+      _[1]=17
+      _[2]=z-4
+      _[3]=y
+   [2]:
+      _[1]=17
+      _[2]=z-4
+      _[3]=y
+> list l=primdecZ(j);
+> ideal m1=l[1][1];
+> m1=m1^2;
+> m1=std(m1);
+> ideal m2=l[2][1];
+> m2=m2^2;
+> m2=std(m2);
+> ideal m3=l[3][1];
+> m3=m3^2;
+> m3=std(m3);
+> i=std(i);
+> i;
+i[1]=y2z-8z3-3z2-1
+> reduce(i,m1);
+_[1]=0
+> reduce(i,m2);
+_[1]=-12
+> reduce(i,m3);
+_[1]=-561
+> typeof;
+   ? error occurred in or before STDIN line 1840: `typeof;`
+   ? last reserved name was `typeof`
+ error at token `;`
+> typeof(reduce(i,m3));
+ideal
+> proc slocusZ(ideal i)
+{
+  i = std(i);
+  ideal j = testideal(i);
+  list result;
+  
+  if (j == 1)
+  { result[1] = ideal(0);}
+
+  else
+  {  
+     list prdZ = primdecZ(j);
+     int ii;
+     int k = size(prdZ);
+     for (ii=1;ii<=k;ii++)
+     {
+        ideal m = prdZ[ii][2];
+        m = m^2;
+        m = std(m);
+        ideal sl = reduce(i,m);
+        if (size(sl) > 0)
+        { result[size(result)+1] = m;}
+     }
+  }
+          
+  return(result);
+
+};
+> list sloc=slocusZ(i);
+// ** redefining m **
+// ** redefining sl **
+// ** redefining m **
+// ** redefining sl **
+> sloc;
+[1]:
+   _[1]=9
+   _[2]=3z-3
+   _[3]=3y
+   _[4]=z2-2z+1
+   _[5]=yz-y
+   _[6]=y2
+[2]:
+   _[1]=289
+   _[2]=17z-68
+   _[3]=17y
+   _[4]=z2-8z+16
+   _[5]=yz-4y
+   _[6]=y2
+> proc slocusZ(ideal i)
+{
+  i = std(i);
+  ideal j = testideal(i);
+  list result;
+  
+  if (j == 1)
+  { result[1] = ideal(0);}
+
+  else
+  {  
+     list prdZ = primdecZ(j);
+     int ii;
+     int k = size(prdZ);
+     for (ii=1;ii<=k;ii++)
+     {
+        ideal m = prdZ[ii][2];
+        m = m^2;
+        m = std(m);
+        ideal sl = reduce(i,m);
+        if (size(sl) == 0)
+        { result[size(result)+1] = m;}
+        kill m,sl;
+     }
+  }
+          
+  return(result);
+
+};
+// ** redefining slocusZ **
+> list sloc=slocusZ(i);
+// ** redefining sloc **
+> sloc;
+[1]:
+   _[1]=4
+   _[2]=2z+2
+   _[3]=2y
+   _[4]=z2-1
+   _[5]=yz+y
+   _[6]=y2
+> proc slocusZ(ideal i)
+{
+  i = std(i);
+  ideal j = testideal(i);
+  list result;
+  
+  if (j == 1)
+  { result[1] = ideal(0);}
+
+  else
+  {  
+     list prdZ = primdecZ(j);
+     int ii;
+     int k = size(prdZ);
+     for (ii=1;ii<=k;ii++)
+     {
+        ideal m = prdZ[ii][2];
+        ideal qm = m^2;
+        qm = std(qm);
+        ideal sl = reduce(i,qm);
+        if (size(sl) == 0)
+        { result[size(result)+1] = m;}
+        kill m,sl;
+     }
+  }
+          
+  return(result);
+
+};
+// ** redefining slocusZ **
+> list sloc=slocusZ(i);
+// ** redefining sloc **
+// ** redefining qm **
+// ** redefining qm **
+> sloc;
+[1]:
+   _[1]=2
+   _[2]=z+1
+   _[3]=y
+> proc slocusZ(ideal i)
+{
+  i = std(i);
+  ideal j = testideal(i);
+  list result;
+  
+  if (j == 1)
+  { result[1] = ideal(0);}
+
+  else
+  {  
+     list prdZ = primdecZ(j);
+     int ii;
+     int k = size(prdZ);
+     for (ii=1;ii<=k;ii++)
+     {
+        ideal m = prdZ[ii][2];
+        ideal qm = m^2;
+        qm = std(qm);
+        ideal sl = reduce(i,qm);
+        if (size(sl) == 0)
+        { result[size(result)+1] = m;}
+        kill m,qm,sl;
+     }
+  }
+          
+  return(result);
+
+};
+// ** redefining slocusZ **
+> list sloc=slocusZ(i);
+// ** redefining sloc **
+> sloc;
+[1]:
+   _[1]=2
+   _[2]=z+1
+   _[3]=y
+> exit;
+Auf Wiedersehen.

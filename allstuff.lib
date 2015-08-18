@@ -1,0 +1,1111 @@
+﻿LIB "all.lib";
+LIB "primdecint.lib";
+
+proc mydimension(ideal i) 
+{
+  i = std(i);
+  def BAS = basering;
+  ideal q = 1;
+
+  if(size(i) == 0)
+  {        
+     return(nvars(BAS)+1);
+  }
+        
+  if (reduce(q,i) == 0)
+  {       
+     return(-1);
+  }
+           
+  if (charstr(BAS)=="integer")
+  {
+     if (deg(i[1]) == 0)
+     {
+	ideal i_ = i[2..size(i)];
+	ring r = 0,x(1..nvars(BAS)),dp;
+	ideal ii = fetch(BAS,i_);
+	ii = std(ii);
+	return(dim(ii));
+              setring BAS;
+              kill r;
+     }
+	
+     if (deg(i[size(i)]) == 0)
+     {
+	ideal i_ = i[1..size(i)-1] ;
+	ring r = 0,x(1..nvars(BAS)),dp;
+	ideal ii = fetch(BAS,i_);
+	ii = std(ii);
+	return(dim(ii));
+              setring BAS;
+              kill r;
+     }
+
+     ring r = 0,x(1..nvars(BAS)),dp;
+     ideal ii =fetch(BAS,i);
+     ii = std(ii);
+     return(dim(ii)+1);
+     setring BAS;
+     kill r;
+  }
+  else
+  {
+     return(dim(i));
+  }
+}
+
+proc myheight(i) 
+{
+  i=std(i);
+  if(charstr(basering)=="integer")
+  {
+     return(nvars(basering)+1-mydimension(i));
+  }
+  else
+  {
+     return(nvars(basering)-dim(i));
+  }
+}
+
+proc myintersect(ideal i, ideal j)  
+{
+  i=std(i);
+  j=std(j);
+
+  def BAS = basering;
+
+  if (charstr(BAS)=="integer")
+  {
+     string tempstr="ring r2=integer,("+varstr(BAS)+",t),dp;";
+  }
+  else
+  {
+     string tempstr="ring r2="+charstr(BAS)+",("+varstr(BAS)+",t),dp;";
+  }
+	
+  execute(tempstr); 
+  ideal J = 0;
+  int k;
+  ideal ii=fetch(BAS,i);
+  for(k=1; k <= size(ii); k++)
+  {
+     J=J,t*ii[k];
+  }
+  ideal jj=fetch(BAS,j);
+  for(k=1; k <= size(jj); k++)
+  {
+     J=J,(1-t)*jj[k];
+  }
+  ideal e=eliminate(J,t);
+  setring BAS;
+  ideal result = fetch(r2,e);
+  for(k=1; k <= size(result); k++)
+  {
+     if(leadcoef(result[k]) < 0)
+     {
+        result[k] = -result[k];
+     }
+  }
+  return(result);
+}
+
+
+proc myquotient(i,j1,j2) 
+{
+  def BAS = basering;
+  int j,k;
+  ideal q = 1;
+             
+  for(j=1; j <= size(j2); j++)
+  {
+     ideal s = j2[j],-j1,-i;
+     matrix m = matrix(syz(s));
+     m = m[1,1..ncols(m)];
+     matrix n[1][ncols(m)] = m[1,1..ncols(m)];
+     ideal qq = n;
+     q = std(myintersect(q,qq));
+     for(k=1; k <= size(q); k++)
+     {
+        if(leadcoef(q[k]) < 0)
+        {
+           q[k] = -q[k];
+        }
+     }
+     
+     kill m,n,qq,s;
+  }
+  return(q);
+}
+
+proc getSmallestZ(ideal J)
+{
+//--- Computes the polynomial of smallest degree of J.
+  int i;
+  poly lp,li;
+  poly p = J[1];
+  int d = deg(p);
+  int di;
+  for(i = 2; i <= ncols(J); i++)
+  {
+    if(J[i] != 0)
+    {
+      di = deg(J[i]);
+
+      lp = leadcoef(p);
+      if(lp < 0)
+      { lp = -1*lp;}
+
+      li = leadcoef(J[i]);
+      if(li < 0)
+      { lp = -1*li;}
+      
+      if((di < d) || (di == d && li < lp))
+      {
+        p = J[i];
+        d = di;
+      }
+      else
+      {
+        if(di == d)
+        {
+          if(size(J[i]) < size(p))
+          {
+            p = J[i];
+          }
+        }
+      }
+    }
+  }
+  return(p);
+}
+
+proc homjj(i,j) 
+{
+  def BAS = basering;
+  ideal istd = std(i);
+  ideal endphi;
+  if (defined(normap))
+  { endphi = normap;}
+  else
+  { endphi = maxideal(1);}
+  qring q1 = istd;
+  ideal j = fetch(BAS,j);
+  ideal i = fetch(BAS,i);
+  poly a = getSmallestZ(j);
+  ideal aJJ = myquotient(i,a*j,j); 
+  ideal rf = interred(reduce(aJJ,std(a)));
+
+//--- ideal rf to check inclusions, Grauert-Remmert-Criterion
+
+  if (size(rf)==0) 
+  {         
+     ring newR1 = integer,(X(1..nvars(BAS))),dp;                                //--- a*j:j = ideal(a) modulo i                  
+     ideal homj = fetch(BAS,i);
+     ideal endphi = fetch(BAS,endphi);
+     export(homj);
+     export(endphi);
+     list result = newR1,"homj","endphi",0;
+     setring BAS;
+     return(result);
+  } 
+  else 
+  {
+     rf = mstd(rf)[2];
+     ideal f = a,rf;
+     int n = size(f);
+
+     ring newR1 = integer,(X(1..nvars(BAS)),T(1..n)),dp;
+     ideal istd = fetch(BAS,istd);
+     attrib(istd,"isSB",1);
+
+     qring q2 = istd;
+     ideal f = fetch(q1,f);
+     ideal Q;
+     ideal af = f[1]*f;
+
+     matrix T = matrix(ideal(T(1..n)),1,n);
+     int ii,jj,kk;
+     matrix A;
+     for(ii=2;ii<=n;ii++) 
+     {
+	for(jj=2;jj<=ii;jj++) 
+        {
+	   A = lift(af,f[ii]*f[jj]);
+//---  Früher: lift function is only working up to sign!
+//---  poly q;
+//---  for(kk=1;kk<=size(af);kk++)
+//---  { q = q+af[kk]*A[kk,1];}				
+//---  if (q == f[ii]*f[jj])
+//---  { matrix AA[n][1] = A[1..n,1];}
+//---  else
+//---  { matrix AA[n][1]  = -A[1..n,1];}
+//---  Macht keinen Sinn im qring!
+                              
+	   Q = Q,ideal(T(ii)*T(jj) - T*A); 
+           
+	}
+     }
+
+     matrix syzf = matrix(syz(f));
+     matrix syzfii[n][n] = syzf[1..n,1..n];
+
+     Q = Q,ideal(T*syzfii);
+     Q = subst(Q,T(1),1);
+                
+     ring newR2 = integer,(X(1..nvars(BAS)),T(2..n)),dp;
+
+     ideal i = fetch(BAS,i);
+     ideal homj = imap(q2,Q);
+     homj = simplify(homj,2);
+     ideal endphi = fetch(BAS,endphi);
+     export(homj);
+     export(endphi);
+     list result = newR2,"homj","endphi",1;
+     setring BAS;
+     return(result);
+  }
+}
+
+proc testideal(ideal i) 
+{
+  i = std(i);
+  if(size(i) == 0)
+  {
+     ideal result = 1;
+     return(result);
+  }
+  ideal j = minor(jacob(i),myheight(i));
+  ideal tmp = i,j;
+  ideal result = Radical(tmp);
+  return(result);
+}
+
+proc elimvar(ideal i, list #)                                                   
+{                                                                             
+   def BAS = basering;  
+   i = std(i);
+//---the map from the original ring to the ring without irrendundant variables
+   if (size(#) == 0)
+   {ideal endphi = maxideal(1);}
+   else
+   {ideal endphi = #[1];}
+//---else endphi=endphi from homjj(i,j), where j is testideal(i)  
+   ideal vv,rk;
+   poly tt,t,v,rest;  
+   string ns;
+   int n,j,k,pos,b;
+   n = size(i);
+   for(j=1;j<=n;j++)                                                      
+//--- looking for linear monomials in all generators of i
+   {
+      tt=jet(i[j],1)-jet(i[j],0);  
+                             
+//--- linear monomials found (the polynomial tt can be a sum of several linear monomials)
+
+      pos=0;
+      for(k=1;k<=size(tt);k++)
+      {                                                                           
+	 if ((leadcoef(tt[k]) == 1 || leadcoef(tt[k]) == -1) && (pos == 0))  
+         {pos=k;}
+      }
+      
+      if (pos > 0)                                                  
+      {
+	 t = tt[pos];                                             
+	 if (deg(t) > 0 && (leadcoef(t) == 1 || leadcoef(t) == -1))
+	 {
+	    v = leadcoef(t)*t;  
+            vv = v;
+            attrib(vv,"isSB",1);                                
+	    b = 0;
+	    rest=i[j]-t;                                                            
+	    for(k=1;k<=size(rest);k++)                             
+	    {
+               rk = rest[k];
+               attrib(rk,"isSB",1);
+	       if (reduce(rk,vv) == 0)
+	       {
+                  b = 1;
+               }
+            }
+            
+	    if (b == 0)                                            
+            {
+	       if (leadcoef(t) == 1)
+	       {
+
+	          poly replace = -(i[j]-t);
+	       }
+	       else
+	       {
+		  poly replace = i[j]-t;
+	       }
+               
+	       ideal QQ = subst(i,v,replace); 
+               QQ = simplify(QQ,2); 
+               ideal phi = subst(endphi,v,replace);
+          //--- substitute the variable v by the polynomial replace
+               string s = varstr(BAS);
+	       string strv = string(v);
+	       int p = find(s,strv);  
+          //--- remove the variable v from the string of variables                         
+
+
+	       if (p > 1 && p < size(s))
+	       {
+	          ns = string(s[1..p-1])+string(s[p+1+size(strv)..size(s)]);
+	       }                                             
+               if (p == 1)                                        
+	       {
+	          ns = string(s[2+size(strv)..size(s)]);
+	       }
+	       if (p+size(strv)-1 == size(s))
+	       {
+		  ns = string(s[1..size(s)-size(strv)-1]);
+	       }
+				
+	       string tmpstr="ring newR1 = integer,("+ns+"),dp;";  
+          //--- compute in the ring over the integers with the reduced string of variables
+               execute(tmpstr);
+	       ideal i = imap(BAS,QQ); 
+               ideal phi = imap(BAS,phi);                        
+	       list result = elimvar(i,phi);                           
+	       result[4] = 1;	                          
+	 //--- list result=newR1,"eli","ephi",1 with newR1/eli isomorphic 
+         //--- to BAS/i and ephi the image
+         //--- of the maximal ideal of BAS/i in our new ring newR1/eli
+               setring BAS;
+	       return(result);
+	    }
+	  }
+       }
+    }
+    ideal eli=i;
+    export(eli);
+    ideal ephi = endphi;
+    export(ephi);
+    list result = BAS,"eli","ephi",0;
+//---result[4]=0 if no variable could be eliminated
+    return(result);
+}
+
+proc isprimZ(ideal i)
+{
+  list p =  minAssZ(i);
+  int j;
+  if(size(p) == 1)
+  { j=1;}
+  return(j);
+}
+
+proc mynormal(ideal i) 
+{
+  def BAS = basering;
+
+  if (isprimZ(i) == 0)
+  { 
+     "WARNING! The input is not prime!";
+     "We will continue with the procedure normalZ(i)";
+     list result = normalZ(i);
+     return(result);
+  }
+
+  ideal j = testideal(i);                                        
+  list h = homjj(i,j);
+
+  if (h[4] == 0)
+  {
+     def NewR = h[1];
+     setring NewR;
+     ideal norid = homj;
+     if(defined(normap) == 0)
+     {ideal normap  = endphi;}
+     export(norid);
+     export(normap);
+     list result = NewR,"norid","normap";
+     setring BAS;
+     return(result);
+  }
+  else
+  {
+     def NewR = h[1];
+     setring NewR;
+     list e = elimvar(homj,endphi);
+     if (e[4] == 0)
+     {
+        ideal i = homj;
+        ideal normap = endphi;
+        export(normap);
+        list result = mynormal(i);
+        setring BAS;
+        return(result);
+     }
+     else
+     {
+        def NewR1 = e[1];
+        setring NewR1;
+        ideal i = std(eli);
+        ideal normap = ephi;
+        export(normap); 
+        list result = mynormal(i);
+	setring BAS;
+        return(result);
+     }
+  }
+}
+
+proc normalZ(ideal i)
+{                                                                          // AM 8.9.GEÄNDERT!
+  def BAS = basering;
+  ideal irad = radicalZ(i);
+
+  if(size(reduce(irad,std(i))) != 0)
+  {
+     "WARNING! The input is not reduced!";
+     "We will continue with the reduced part of input";
+     i=irad;
+  }
+
+  int isGlobal = ord_test(BAS);
+
+  if (isGlobal != 1)
+  {
+ //--- We change to dp ordering.
+    list rl = ringlist(BAS);
+    list origOrd = rl[3];
+    list newOrd = list("dp", intvec(1:nvars(BAS))), list("C", 0);
+    rl[3] = newOrd;
+    def globR = ring(rl);
+    setring globR;
+    ideal i = fetch(BAS,i);
+    list L = minAssZ(i);
+    setring BAS;
+    L = fetch(globR,L);
+  }
+  else
+  {
+    list L = minAssZ(i);
+  }
+ 
+  int k = size(L);
+  int j;
+  list NL;
+  for(j=1;j<=k;j++)
+  { 
+     ideal api = L[j];
+     if (deg(api[1]) == 0)
+     {
+        int p = int(api[1]);
+        ring rnew = p,x(1..nvars(BAS)),dp; 
+        ideal api = fetch(BAS,api);
+        list n = normalP(api,"withRing");
+        def r1 = n[1][1];
+        setring r1;
+        NL[j] = r1,"norid","normap";
+        setring BAS;
+        kill p,rnew,api,r1;
+     }
+     else  
+     {     
+        NL[j] = mynormal(api);
+        kill api;
+     }
+  }
+  return(NL);
+}
+
+proc isnor(ideal i)
+{       
+  def BAS = basering; 
+  i = std(i); 
+  int isn;                                              
+
+  if ((size(i) == 1 && deg(i[1]) == 0) or (size(i) == 0))
+  { isn = 1; return(isn);}
+
+  ideal j = testideal(i);
+  poly a = getSmallestZ(j);
+
+  qring q = std(i);
+  setring q;
+  ideal i = fetch(BAS,i);
+  ideal j = fetch(BAS,j);
+  poly a = fetch(BAS,a);
+  
+  if (charstr(BAS) == "integer")
+  {  ideal aJJ = myquotient(i,a*j,j);}
+  else
+  { ideal aJJ = quotient(a*j,j);}
+           
+  attrib(aJJ,"isSB",1);
+  ideal rf = interred(reduce(aJJ,std(a)));
+
+  if (size(rf) == 0)
+  { isn = 1;}
+
+  return(isn);
+  setring BAS;
+}
+
+proc redamb(ideal i)
+{
+   def BAS = basering;
+   i = std(i);
+   list fv = findvars(i,0);
+   execute("ring Rnew=("+charstr(BAS)+"),("+string(fv[1])+"),dp;");
+   ideal i = imap(BAS,i);
+}
+
+proc slocusZ(ideal i)
+{
+  i = std(i);
+  list Sing,mAi,mAj,result;
+  int ii,mm,nn,mai,maj,pp,sg;
+  ideal S,SS,P,J,M,QM,F,SL,I;
+  mAi = minAssZ(i);
+  mai = size(mAi);
+  for (ii=1;ii<=mai;ii++)
+  {
+     P = mAi[ii];
+     pp = size(P);
+     J = testideal(P);
+     S = 1;
+     mAj = minAssZ(J);
+     maj = size(mAj);
+     for (mm=1;mm<=maj;mm++)
+     {
+        M = mAj[mm];
+        QM = std(M^2);
+        for (nn=1;nn<=pp;nn++)
+        {
+           F = std(P[nn]);
+           SL = interred(reduce(F,QM));
+           if (size(SL) == 0)
+           {S = myintersect(S,M);}
+        }
+     }
+     S = std(S);
+     Sing[size(Sing)+1] = S;
+  }   
+  sg = size(Sing);
+  SS = 1;
+  for (ii=1;ii<=sg;ii++)
+  {
+     I = Sing[ii];
+     SS = myintersect(SS,I);
+  }
+  SS = std(SS);
+  result = SS,Sing;
+  return(result);
+}
+
+proc singid(ideal i)
+{
+  def BAS = basering;
+  ideal result;
+  if (i[1] == 0)
+  { result = ideal(1);}
+  else
+  {
+     if (charstr(BAS)=="integer")
+     { result = slocusZ(i)[1];}
+     else
+     { result = std(slocus(i));}
+  }
+  return(result);
+}
+
+proc Radical(ideal i)
+{ 
+  def BAS = basering;
+  ideal result;
+  if(charstr(BAS) == "integer")
+  { result = radicalZ(i);}
+  else
+  { result = radical(i);}
+  return(result);
+}
+
+proc blowUp2int(ideal J,ideal C)
+{
+  int i,j;
+  def S = basering;
+  def laM = maxideal(1);
+//--- number of generators of C should be as small as possible
+  def mstdC = mstd(C);
+  if(ncols(mstdC[1])<ncols(mstdC[2]))
+  {
+     C = mstdC[1];
+  }
+  else
+  {
+     C = mstdC[2];
+  }
+  C = simplify(interred(C),2);
+
+  if(C[1] == 1)
+  {
+     ERROR("Your chosen center was the empty set. Exciting.");
+  }
+//--- V(C) should be a subset of V(J)
+  if(size(reduce(J,std(C))) > 0)
+  {
+     ERROR("V(J) does not contain V(C). Exiting.");
+  }
+
+  string r1="ring R=("+charstr(basering)+"),(x(1.."+string(nvars(S));
+  r1=r1+"),y(1.."+string(ncols(C))+")),dp;";
+  string r1t="ring Rt=("+charstr(basering)+"),(x(1.."+string(nvars(S));
+  r1t=r1t+"),y(1.."+string(ncols(C))+"),t),(dp,dp(1));";
+  execute(r1);       // ring for describing the transforms
+  execute(r1t);      // like r1, but with additional variable t
+  def J = fetch(S,J);
+  def C = fetch(S,C);
+//--- we need to eliminate t from J,y(1)-t*C[1],...y(m)-t*C[m]
+  ideal elId = J;
+  for(i=1;i<=ncols(C);i++)
+  {
+     elId = elId,y(i)-t*C[i];
+  }
+  elId = eliminate(elId,t);   // ideal describing the transform of J
+  setring R;                  // get rid of t
+  def elId = fetch(Rt,elId);
+  def E = fetch(S,C);         // determine exceptional divisor
+  E = E+elId;
+  def laM0 = fetch(S,laM);    // the blowup map
+
+  list resList;
+  ideal Jsub;
+  ideal Esub;
+  ideal laM;
+  ideal endphi;
+  list templist;
+  for(i=1;i<=nvars(R)-nvars(S);i++)
+  {
+//--- first pass elId and E on to the i-th chart
+      Jsub = std(subst(elId,y(i),1));
+      if(Jsub[1] == 1)
+      {
+//--- transform does not meet this chart ==> ignore it
+         i++;
+         continue;
+      }
+      Esub = std(subst(E,y(i),1));
+//--- now get rid of unnecessary variables
+      endphi = maxideal(1);
+      templist = elimvar(Jsub,endphi);
+      if(templist[4] == 1)
+      {
+         def Rnew = templist[1];
+         setring Rnew;
+         map pi = R,ephi;
+         ideal Jnew = eli;
+         ideal eD = pi(Esub);
+         eD = simplify(interred(eD),2);
+         ideal bM = pi(laM0);
+      }
+      else
+      {
+         laM = laM0;
+      }
+
+//--- export the relevant data of this ring and add the ring to the list
+      export Jnew;
+      export eD;
+      export bM;
+      if(templist[4] == 1)
+      { resList[size(resList)+1] = Rnew;}
+      else
+      { resList[size(resList)+1] = R;}
+      setring R;
+      kill Rnew;
+  }
+  setring S;
+  return(resList);
+}
+
+proc myblowUp2(i,s)
+{ 
+  def BAS = basering;
+  list result;
+  if(charstr(BAS) == "integer")
+  { result = blowUp2int(i,s);}
+  else
+  { result = blowUp2(i,s);}
+  return(result);
+}
+    
+
+proc mytransversalT(ideal J, list E,list #)
+{
+//----------------------------------------------------------------------------
+// check whether J and each element of the list E meet transversally
+//----------------------------------------------------------------------------
+   def R=basering;
+   if(size(#) > 0)
+   {
+     ideal pp = #[1];
+   }
+   int i,d;
+   ideal T,M;
+   ideal Jstd = std(J);
+   ideal Tstd;
+   if (charstr(R) == "integer")
+   { d =  myheight(Jstd)+1;}
+   else
+   { d = nvars(basering)-mydimension(Jstd)+1;}   
+//--- d = n-dim(V(J) \cap hypersurface)
+
+   for(i=1;i<=size(E);i++)
+   {
+      if(size(reduce(E[i],Jstd)) == 0)
+      { return(0);}
+   //--- V(J) is contained in E[i]
+      T = J,E[i];
+      Tstd = std(T);
+      if (charstr(R) == "integer")
+      { d = myheight(Tstd);}
+      else
+      { d = nvars(basering)-dim(Tstd);}
+
+      if(size(interred(reduce(1,Tstd))) != 0)
+      {
+//--- intersection is non-empty
+         M = minor(jacob(T),d,Tstd)+T;
+         M = std(M);
+         poly e = 1;
+         if(size(interred(reduce(e,M))) > 0)
+         {
+//--- intersection is not transversal
+           if(size(#) == 0)
+           {
+              return(0);
+           }
+           M = std(Radical(M));
+           if(size(reduce(pp,M)) > 0)
+           {return(0);}
+         }
+      }
+   }
+//--- passed all tests
+   return(1);
+}
+
+proc substpart(ideal endid, ideal endphi, int homo, intvec rw)
+{
+   def newRing = basering;
+   int ii,jj;
+   map phi = newRing,maxideal(1);    
+   list Le = elimpart(endid);
+   int q = size(Le[2]);    
+   intvec rw1 = 0;        
+   rw1[nvars(basering)] = 0;
+   rw1 = rw1+1;            //rw1=1,..,1 (as many 1 as nvars(basering))
+
+   while( size(Le[2]) != 0 )
+   {
+      endid = Le[1];
+      if ( defined(ps) )
+      { kill ps; }
+      map ps = newRing,Le[5];
+      phi = ps(phi);
+      for(ii=1;ii<=size(Le[2]);ii++)
+      {
+         phi=phi(phi);
+      }
+      //eingefuegt wegen x2-y2z2+z3
+
+      for( ii=1; ii<=size(rw1); ii++ )
+      {
+         if( Le[4][ii]==0 )        //ii = index of var which was substituted
+         {
+            rw1[ii]=0;             //substituted vars have entry 0 in rw1
+         }
+      }
+      Le=elimpart(endid);          //repeated application of elimpart
+      q = q + size(Le[2]);
+   }
+   endphi = phi(endphi);
+   if( nvars(newRing) == q )
+   {
+     ring lastRing = char(basering),T(1),dp;
+     ideal endid = T(1);
+     ideal endphi = T(1);
+     for(ii=2; ii<=q; ii++ )
+     {
+        endphi[ii] = 0;
+     }
+     export(endid,endphi);
+     list L = lastRing;
+     setring newRing;
+     return(L);
+   }
+
+   if (homo==1 && nvars(newRing)-q >1 && size(endid) >0 )
+   {
+      jj=1;
+      for( ii=2; ii<size(rw1); ii++)
+      {
+         jj++;
+         if( rw1[ii]==0 )
+         {
+            rw=rw[1..jj-1],rw[jj+1..size(rw)];
+            jj=jj-1;
+         }
+      }
+      if( rw1[1]==0 ) { rw=rw[2..size(rw)]; }
+      if( rw1[size(rw1)]==0 ){ rw=rw[1..size(rw)-1]; }
+
+      ring lastRing = char(basering),(T(1..nvars(newRing)-q)),(a(rw),dp);
+   }
+   else
+   {
+      ring lastRing = char(basering),(T(1..nvars(newRing)-q)),dp;
+   }
+   ideal lastmap;
+   jj = 1;
+
+   for(ii=1; ii<=size(rw1); ii++ )
+   {
+      if ( rw1[ii]==1 ) { lastmap[ii] = T(jj); jj=jj+1; }
+      if ( rw1[ii]==0 ) { lastmap[ii] = 0; }
+   }
+   map phi1 = newRing,lastmap;
+   ideal endid  = phi1(endid);      //### bottelneck
+   ideal endphi = phi1(endphi);
+
+/*
+Versuch: subst statt phi
+   for(ii=1; ii<=size(rw1); ii++ )
+   {
+      if ( rw1[ii]==1 ) { endid = subst(endid,var(ii),T(jj)); }
+      if ( rw1[ii]==0 ) { endid = subst(endid,var(ii),0); }
+   }
+*/
+   export(endid);
+   export(endphi);
+   list L = lastRing;
+   setring newRing;
+   return(L);
+}
+
+proc lipmanresolve(ideal i)
+{    
+ //--- assertion: i radical ideal and dim(i)=2
+
+   def BAS = basering;
+   i = std(i);
+   int dbg = printlevel - voice + 2;
+   list fv = findvars(i,0);
+   execute("ring Rnew=("+charstr(BAS)+"),("+string(fv[1])+"),dp;");
+   ideal i = imap(BAS,i);
+   attrib(i,"isSB",1);
+
+   if(mydimension(i) != 2)
+   { "WARNING! The input is not of dimension 2!";
+      "The result may be wrong.";}
+
+   
+   ideal irad = Radical(i);
+
+   if(size(reduce(irad,std(i))) != 0)
+   { "WARNING! The input is not reduced!";
+     "We will continue with the reduced part of input";
+      i=irad;}
+
+   list allRings,endRings;
+   allRings[1] = Rnew;
+   ideal liph = maxideal(1);
+   export(i);
+   export(liph);
+   int e,d,ii;
+   module path = [0,0,1]; //---[Start,Knoten,Zweig vom drüberliegenden Knoten]
+   matrix Path = matrix(path);
+   export(Path);
+
+ while(ii < size(allRings))
+ {
+   ii++;
+   def S = allRings[ii];
+   setring S;
+   if (size(i) == 0)
+   { ideal s = 1;}
+   else
+   { ideal s = singid(i);}
+   e = isnor(i);
+   d = mydimension(s);
+
+   if (e == 1 && d == -1)
+   { 
+//---S/i is normal and regular
+       ideal lip = i;
+       export(lip);
+       export(liph);
+       endRings[size(endRings)+1] = S;
+       kill S;
+   }
+
+   if (e == 1 && d > -1)
+   {
+//---S/i is normal and singular
+       list b = myblowUp2(i,s);
+       int rr = size(b);
+       int k;
+       for (k=1;k<=rr;k++)
+        {
+          def Newr1 = b[k];
+          setring Newr1;
+          def path = imap(S,path);
+          path = path,[-1,ii+k-1,k];           //---path=path,[BlowUp,Knoten,Zweig vom drüberliegenden Knoten]
+          matrix Path = matrix(path);
+          export(Path);
+          allRings[size(allRings)+1] = Newr1;
+          ideal is = std(Jnew);
+          ideal slis = singid(is);
+          list E;                           //--- Checken, wie ich Divisoren sammle.....
+          E[size(E)+1] = eD;
+          int tt = mytransversalT(Jnew,E);
+
+          if (tt == 1)
+          { ideal i = Jnew;}
+          else
+          { ideal i = myintersect(Jnew,Radical(eD));}    //--- muss das wirklich Radical(ED) sein?
+
+          map phi = S,bM;
+          ideal liph = phi(liph);
+          export(liph);
+          kill Newr1,tt;
+          setring S;
+       }
+       kill b,k,rr,S;
+   }
+
+
+   if (e == 0)
+   {
+//---S/i is not normal
+
+       if (charstr(S) == "integer")
+       {  
+          list n = normalZGLS(i);
+          int rr = size(n[1]);
+          int kk;
+          for (kk=1;kk<=rr;kk++)
+          {                      
+              def NewrZ = n[1][kk];                                           
+              setring NewrZ;                   
+              list elv = elimvar(norid,normap);
+              if(elv[4] == 1)
+              {
+                 def R2 = elv[1];
+                 setring R2;
+                 ideal norid = std(eli);
+                 ideal normap = ephi;
+              }
+              def path = imap(S,path);
+              path = path,[1,ii+kk-1,kk];                   //---path=path,[Normalisierung,Knoten,Zweig vom drüberliegenden Knoten]
+              matrix Path = matrix(path);
+              export(Path);
+              map phi = S,normap;
+              ideal liph = phi(liph);
+              export(liph);
+              ideal i = norid;
+              export(i);
+              if(elv[4] == 1)
+              { allRings[size(allRings)+1] = R2;}
+              else
+              { allRings[size(allRings)+1] = NewrZ;}
+              kill NewrZ;
+              if(defined(R2))
+              { kill R2;}
+              setring S;
+          } 
+       }
+       else
+       {
+          if (char(S) == 0)
+          { list n = normal(i);}
+          else
+          { list n = normalP(i,"withRing");}
+
+          int rr=size(n[1]);
+          int kk;
+          for (kk=1;kk<=rr;kk++)
+          {                      
+             def Newrk = n[1][kk];                         
+             setring Newrk;
+             def path = imap(S,path);
+             path = path,[1,ii+kk-1,kk];             //---path=path,[Normalisierung,Knoten,Zweig vom Knoten]
+             matrix Path = matrix(path);
+             export(Path);
+           
+             if (char(S) == 0)
+             {          
+                int homo = homog(norid);
+                intvec rw; 
+
+                if(homo == 1)
+                { rw = ringweights(Newrk);}
+
+                list L = substpart(norid,normap,homo,rw);
+                def newrk = L[1];
+                setring newrk;
+                allRings[size(allRings)+1] = newrk;
+                ideal i = std(endid);
+                export(i);
+                ideal normap = endphi;                      
+                def path = imap(Newrk,path);
+                matrix Path = matrix(path);
+                export(Path);
+                kill homo,rw;
+             }
+             else
+             { 
+                ideal i = std(norid);
+                export(i);
+                allRings[size(allRings)+1] = Newrk;
+             } 
+
+             map nor = S,normap;
+             ideal liph = nor(liph);
+             export(liph);
+             kill Newrk,newrk,L;
+             setring S;
+          }
+       }
+       kill kk,n,rr;
+    }
+ }  
+ list result = endRings,allRings;
+ return(result);
+}
+
+proc lipmanOutputText(int dbg)
+{
+  if ( dbg >= 0 )
+  {
+    "";
+      "// 'normal' created a list, say l, of two elements.";
+   
+    "// To see the list type";
+    "      l;";
+    "";
+    "// * l[1] is a list of", size(endRings)," normal and regular ring(s).";
+    "// To access the i-th ring l[1][i], give it a name, say Ri, and type";
+    "     def R1 = l[1][1]; setring R1; lipid; lipmap;";
+    "// For the other rings type first (if R is the name of your base ring)";
+    "     setring R;";
+    "// and then continue as for R1.";
+    "// Ri/lipid are the charts of the desingularized ring R/i";
+ 
+    "";
+    "// * l[2] shows all", size(allRings), "ring(s) that occur while computing.";
+    "// To access the i-th ring l[2][j], give it a name, say ri, and type";
+    "     def r1 = l[2][1]; setring r1; i; liph;";
+   "// For the other rings type first (if R is the name of your base ring)";
+    "     setring R;";
+    "// and then continue as for r1.";
+    "// ri/i are the charts of the normalizations and blowing ups of R/i";
+ 
+  }
+}

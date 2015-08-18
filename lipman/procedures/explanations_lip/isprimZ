@@ -1,0 +1,52 @@
+﻿ . .3 isprimZ
+.............
+
+Procedure from library `lipmanresolve.lib' (*note lipmanresolve_lib::).
+
+*Usage:*
+     isprimZ(i);
+     
+*Assume:*
+     i ideal over the integers     
+
+*Return:*
+     an integer k = 1 if i is prime, 0 else
+     
+
+*Example:*
+     LIB "lipmanresolve.lib";
+     ring R = integer,(x,y,z),dp;
+     ideal i1 = x3z2+5x2yz2+y5;
+     isprimZ(i1);
+     ==> 1
+     ideal i2 = i1,y3-z;
+     isprimZ(i2);
+     ==> 0
+     primdecZ(i2);
+     ==> [1]:
+     ==>    [1]:
+     ==>       _[1]=y3-z
+     ==>       _[2]=x3z+5x2yz+y2
+     ==>       _[3]=x3y+5x2y2+1
+//--- prime component
+     ==>    [2]:
+     ==>       _[1]=y3-z
+     ==>       _[2]=x3z+5x2yz+y2
+     ==>       _[3]=x3y+5x2y2+1
+     ==> [2]:
+     ==>    [1]:
+     ==>       _[1]=z2
+     ==>       _[2]=y2z
+     ==>       _[3]=y3-z
+//---primary component
+     ==>    [2]:
+     ==>       _[1]=z
+     ==>       _[2]=y
+//---We get 2 components by intersecting the irreducible set V(i1) with V(y^3-z)
+
+    
+* Menu:
+
+See also:
+* primdecZ::
+

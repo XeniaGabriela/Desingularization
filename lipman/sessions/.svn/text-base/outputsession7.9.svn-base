@@ -1,0 +1,188 @@
+> ring r=0,(x(1..3)),dp;
+> ideal J=x(1)^3-x(2)^2*x(3)^2;
+> J=std(J);
+> ideal Jrad=std(radical(J));
+> reduce(Jrad,J);
+_[1]=0
+> isnor(J);
+0
+> list n=normal(J);
+> n;
+[1]:
+   [1]:
+      //   characteristic : 0
+//   number of vars : 4
+//        block   1 : ordering dp
+//                  : names    T(1)
+//        block   2 : ordering dp
+//                  : names    x(1) x(2) x(3)
+//        block   3 : ordering C
+[2]:
+   [1]:
+      _[1]=x(2)*x(3)
+      _[2]=x(1)
+> def Newrk=n[1][1];
+> setring Newrk;
+> norid;
+norid[1]=-T(1)*x(1)+x(2)*x(3)
+norid[2]=-T(1)*x(2)*x(3)+x(1)^2
+norid[3]=T(1)^2-x(1)
+norid[4]=x(2)^2*x(3)^2-x(1)^3
+> normap;
+normap[1]=x(1)
+normap[2]=x(2)
+normap[3]=x(3)
+> int homo=homog(norid);
+> homo;
+0
+> intvec rw;
+> list L=substpart(norid,normap,homo,rw);
+> L;
+[1]:
+   //   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    T(1) T(2) T(3)
+//        block   2 : ordering C
+> def newrk=L[1];
+> setring newrk;
+> endid;
+endid[1]=T(1)^3-T(2)*T(3)
+endid[2]=T(1)^4-T(1)*T(2)*T(3)
+endid[3]=T(1)^6-T(2)^2*T(3)^2
+> endphi;
+endphi[1]=T(1)^2
+endphi[2]=T(2)
+endphi[3]=T(3)
+> ideal s=std(radical(slocus(endid)));s;
+// ** redefining s **
+s[1]=T(3)
+s[2]=T(2)
+s[3]=T(1)
+> endid=std(endid);
+> endid;
+endid[1]=T(1)^3-T(2)*T(3)
+> list b=blowUp2(endid,s);
+> b;
+[1]:
+   //   characteristic : 0
+//   number of vars : 2
+//        block   1 : ordering dp
+//                  : names    x(3) y(3)
+//        block   2 : ordering C
+[2]:
+   //   characteristic : 0
+//   number of vars : 2
+//        block   1 : ordering dp
+//                  : names    x(2) y(3)
+//        block   2 : ordering C
+[3]:
+   //   characteristic : 0
+//   number of vars : 2
+//        block   1 : ordering dp
+//                  : names    y(1) y(2)
+//        block   2 : ordering C
+> def R1=b[1]; def R1=b[1]; 
+> setring R1;
+> Jnew;
+Jnew[1]=0
+> eD;
+eD[1]=x(3)
+> def R2=b[2];
+> setring R2;
+> Jnew;
+Jnew[1]=0
+> eD;
+eD[1]=x(2)
+> def R3=b[3];
+> setring R3;
+> Jnew;
+Jnew[1]=0
+> eD;
+eD[1]=y(1)*y(2)
+> setring r;
+> list li=lipman(J);
+> li;
+[1]:
+   empty list
+[2]:
+   [1]:
+      //   characteristic : 0
+//   number of vars : 2
+//        block   1 : ordering dp
+//                  : names    x(3) y(3)
+//        block   2 : ordering C
+   [2]:
+      //   characteristic : 0
+//   number of vars : 2
+//        block   1 : ordering dp
+//                  : names    x(2) y(3)
+//        block   2 : ordering C
+   [3]:
+      //   characteristic : 0
+//   number of vars : 2
+//        block   1 : ordering dp
+//                  : names    y(1) y(2)
+//        block   2 : ordering C
+
+> setring r;
+> J;
+J[1]=x(2)^2*x(3)^2-x(1)^3
+> list rl=reslipman(J);
+> rl;
+[1]:
+   //   characteristic : 0
+//   number of vars : 2
+//        block   1 : ordering dp
+//                  : names    x(3) y(3)
+//        block   2 : ordering C
+[2]:
+   //   characteristic : 0
+//   number of vars : 2
+//        block   1 : ordering dp
+//                  : names    x(2) y(3)
+//        block   2 : ordering C
+[3]:
+   //   characteristic : 0
+//   number of vars : 2
+//        block   1 : ordering dp
+//                  : names    y(1) y(2)
+//        block   2 : ordering C
+> def r2=rl[2];
+> setring r2;
+> eD;
+eD[1]=x(2)
+> Jnew;
+Jnew[1]=0
+> lip;
+lip[1]=x(2)
+> liph;
+liph[1]=x(2)*y(3)
+liph[2]=x(2)
+liph[3]=x(2)^2*y(3)^3
+> path;
+path[1]=2*gen(2)+gen(1)
+
+> setring r;
+> rl;
+[1]:
+   //   characteristic : 0
+//   number of vars : 2
+//        block   1 : ordering dp
+//                  : names    x(3) y(3)
+//        block   2 : ordering C
+[2]:
+   //   characteristic : 0
+//   number of vars : 2
+//        block   1 : ordering dp
+//                  : names    x(2) y(3)
+//        block   2 : ordering C
+[3]:
+   //   characteristic : 0
+//   number of vars : 2
+//        block   1 : ordering dp
+//                  : names    y(1) y(2)
+//        block   2 : ordering C
+> size(rl);
+3
+> 

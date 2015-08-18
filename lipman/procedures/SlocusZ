@@ -1,0 +1,52 @@
+proc slocusZ(ideal i)
+{
+  i = std(i);
+  list Sing,mAi,mAj;
+  int ii,mm,nn,mai,maj,pp,sg;
+  ideal S,SS,P,J,M,QM,F,SL,I;
+  mAi = minAssZ(i);
+  mai = size(mAi);
+  for (ii=1;ii<=mai;ii++)
+  {
+     P = mAi[ii];
+     pp = size(P);
+     J = testideal(P);
+     S = 1;
+     mAj = minAssZ(J);
+     maj = size(mAj);
+     for (mm=1;mm<=maj;mm++)
+     {
+        M = mAj[mm];
+        QM = std(M^2);
+        for (nn=1;nn<=pp;nn++)
+        {
+           F = std(P[nn]);
+           SL = interred(reduce(F,QM));
+           if (size(SL) == 0)
+           {S = myintersect(S,M);}
+        }
+     }
+     S = std(S);
+     Sing[size(Sing)+1] = S;
+  }   
+  sg = size(Sing);
+  SS = 1;
+  for (ii=1;ii<=sg;ii++)
+  {
+     I = Sing[ii];
+     SS = myintersect(SS,I);
+  }
+  SS = std(SS);
+  return(SS);
+}
+
+proc singid(ideal i)
+{
+  def BAS = basering;
+  ideal result;
+  if (charstr(BAS)=="integer")
+  { result = slocusZ(i);}
+  else
+  { result = slocus(i);}
+  return(result);
+}

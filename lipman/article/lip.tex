@@ -1,0 +1,581 @@
+\documentclass{article}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{color}
+\usepackage{graphicx}
+\usepackage{anyfontsize}
+%\usepackage{epsfig}
+%\usepackage[all]{xy}
+\newcounter{excnt}
+\newtheorem{thm}{Theorem}
+\newtheorem{df}[thm]{Definition}
+\newtheorem{prop}[thm]{Proposition}
+%\newtheorem{rem}[thm]{Remark}
+\newtheorem{cor}[thm]{Corollary}
+\newtheorem{lem}[thm]{Lemma}
+\newenvironment{proof}%
+     {\noindent {\bf Proof:}}{\nopagebreak\begin{flushright}{\bf q.e.d.}\end{flushright}}
+\newenvironment{example}%
+     {\stepcounter{excnt}
+      \noindent {\bf Example \arabic{excnt}} \phantom{i}}{\vspace{0.4cm}}
+\newenvironment{algo}[1]{\begin{quote}{\bf Algorithm #1}}{\end{quote}}
+
+\title{Lipmans Desingularization Algorithm}
+\author{
+	apl. Prof. Dr. Anne Fr\"uhbis--Kr\"uger (Institut f. Alg. Geometrie, \\
+        Leibniz Universt\"at Hannover, Germany)\\
+ 	Prof. Dr. Florian Heß (Institut für Mathematik, \\
+        Universt\"at Oldenburg, Germany)\\
+	Xenia Bogomolec (Institut f. Alg. Geometrie, \\
+        Leibniz Universt\"at Hannover, Germany)
+}
+
+% Florian Hess nicht vergessen
+
+
+\begin{document}
+
+\maketitle
+
+\abstract{}
+
+\section{Introduction}
+
+\section{Lipmans approach} 
+\label{sec2}
+
+The strategy of separating a singular point of a curve into several points and 
+even resolve the singularity by blowing it up successively leads to the 
+desingularization of the curve. It is the statement of the following proposition.\\
+
+
+\begin{prop}[Liu06, Prop. 8.1.26]
+Let $X \rightarrow$ $spec(k)$ be an integral projective curve over a field $k$.
+Then the sequence
+$$ \cdots X_{n}\rightarrow X_{n-1}\rightarrow\cdots\rightarrow X_1\rightarrow X_0=X$$
+is finite whereat $X_{i}\rightarrow X_{i-1}$ is the blow up of $X_{i-1}$ along the 
+singular locus $Sing(X_{i-1})$ which is a closed subset of $X_{i-1}$.
+\end{prop}
+
+\noindent
+If we have a surface over spec$(k)$ we can modify the process of successfully 
+blowing up points by normalizing the surface first. Normal rings are regular 
+in codimension one, so again we only have points as singularities. 
+% Definiton von arithmetischen Fl?en in der Einfhrung???
+We can also apply the same process to an arithmetic surface $\pi:X\,\rightarrow\,S$, 
+at which $S$ is a Dedekindscheme of characteristic zero.
+% Bemerkung zu Lipman bei arithmetischen Fl?en ber Dedekindschemata der Charakteristik > 0.
+% normale A.F. von endl. Typ ber S hat dann ev. unendl. viele Singularit?n, da
+% S nicht unbedingt excellent ist. Sing(X) ist dann insbes. nicht unbedingt abgeschl.
+% Diesen Fehler kann man durch Annahme beheben, dass generische Faser glatt ist.
+% Beweis in Liu06,Cor.8.3.51
+Arithmetic surfaces are models of algebraic curves over number fields. 
+$X$ is excellent and then Sing$(X)$ is a closed subset of $X$. 
+Normalizations and blow ups of excellent schemes 
+are locally of finite type and therefore excellent as well. Hence the sequence
+$$ \cdots X_{i+1}\rightarrow X_i^\prime\rightarrow X_i\rightarrow\cdots\rightarrow X_1\rightarrow X_0=X$$
+with normalizations $X_i^\prime\rightarrow X_i$ and blow ups $X_{i+1}\rightarrow X_i^\prime$ 
+along Sing$(X_i^\prime)$ is defined.
+
+
+\begin{thm}[Lip78]
+Let $X$ be an excellent, Noetherian and reduced 2-dimensional scheme. Then the above
+sequence is finite and $X$ has a strong desingularization.
+\end{thm}
+
+\noindent
+The proof of this theorem is complex and would go beyond the scope of this article.
+But we want to refer to the proof in [CS86,Ch.XI], 
+% In Literaturverzeichnis von R. Klinzmann nachsehen!
+which is more geometric than the original proof of Lipman.\\
+An arithmetic surface $\pi:X\,\rightarrow\, S$ is of finite type over $S$ since 
+the structure morphism $\pi$ is projective. Consequently $X$ is an excellent, 
+Noetherian and reduced scheme of dimension $2$.
+The map $\pi$ is a birational morphism of integral schemes and it particularly induces 
+an isomorphism on open subsets. Therefore the generic fibres are isomorphic.\\
+
+
+\begin{cor}
+Let $\pi:X\,\rightarrow\, S$ be an arithmetic surface over a Dedekindscheme $S$ 
+of characteristic zero. Then there exists a strong desingularization 
+$X^\prime\,\rightarrow\,X$ of $X$. In particular $X^\prime$ is irreducible and 
+reduced and the generic fibres $X_\eta^\prime$ and $X_\eta$ are isomorphic.
+\end{cor}
+
+\noindent
+So we can construct an algorithm to desingularize excellent Noetherian surfaces 
+over fields and over the integers. There are three things we need for the construction 
+in particular: The computation of a blow up, the singular locus and the 
+normalization of a reduced ring. Blow ups have been studied and implemented in 
+{\sc{Singular}} by Anne Fr\"uhbis-Kr\"uger in the library {\sf{resolve.lib}}. 
+The computation of the singular locus over the integers asks for a different 
+approach than we know from computing the singular locus over a field. The 
+tightest bottleneck of the algorithm though are the normalizations. 
+There are three various algorithms implemented for reduced rings over fields in 
+the library {\sf{normal.lib}}, {\sf{modnormal.lib}} and {\sf{locnormal.lib}} 
+in {\sc{Singular}} by B\"ohm, Decker, Greuel, Pfister et al.
+Two of them are implemented by us for reduced rings over the integers in the 
+library {\sf{normalint.lib}}. 
+We will disclose the basic concepts of the necessary computations in the 
+following sections.\\
+
+\subsection{Singular Locus}
+As we are working with affine varieties and schemes we will define the singular 
+locus as follows:
+
+\begin{df}[Liu06,Def. 4.2.8]
+Let $X$ be a scheme, $x \in X$ and let $\mathfrak{m}$ be the maximal ideal of the 
+local ring $\mathcal{O}_{X,x}$ and $k:=\mathcal{O}_{X,x}/ \mathfrak{m}= \kappa(x)$.
+Then $X$ is called regular in $x$, if and only if 
+$dim_k( \mathfrak{m}/ \mathfrak{m}^2)=dim_k( \mathcal{O}_{X,x})$. The scheme $X$ is 
+called regular if it is regular in all its points. We call a point $x \in X$ 
+singular if $X$ is not regular in $x$.
+\end{df}
+
+\noindent
+For a Noetherian ring $R$ this means algebraically spoken, that $R$ is called 
+regular if all its localizations $R_P$, $P\in$ spec$(R)$ are regular.
+This definition alone is not enough for the actual computation of the singular 
+locus of a scheme. If we have an ideal $I$ of height $h$ over a field $k$,
+the well known jacobian-criterion tells us that its singular locus  
+is defined by the $h$-minors  of its jacobian ideal $J_I$ and the ideal $I$ 
+itself, so Sing$(I)=$V$(\langle J_I,I \rangle)$.
+If $I$ is an ideal over the integers it is not as easy to compute the singular 
+locus. But we know, that if we take the radical of the above defined ideal 
+$\langle J_I,I \rangle$ we get a so called test ideal $J$ of $I$. 
+It can be shown that Sing$(I)\subseteq$ V$(J)$. So there are only finitely many 
+points which we have to check for regularity.
+% bei R.Klinzmann nach Hinweisen gucken
+(We will go into other useful properties of the ideal $J$ in the section about 
+the normalizations.)\\
+The following lemma states a criterium to decide if a point of a scheme is regular
+or singular.
+
+\begin{lem}[Liu06, Cor. 4.2.12]
+Let $(A,\mathfrak{m})$ be a regular, local ring and $f \in \mathfrak{m} \setminus \{ 0\}$.
+Then $A/\langle f \rangle$ is regular if and only if $f\not\in \mathfrak{m}^2$.
+\end{lem}
+
+\begin{proof}
+A is an integral ring, so $f$ is a non-zero-divisor on $A$ 
+and therefore dim$(A/\langle f \rangle)=$ dim$(A)-1$. 
+Let us set $\mathfrak{n}:= \mathfrak{m}/\langle f \rangle$ and $k=A / \mathfrak{m}$. Then 
+we know that $(A / \langle f \rangle)$ is regular if and only if 
+$dim_k( \mathfrak{n}/ \mathfrak{n}^2) = dim_k( \mathfrak{m}/ \mathfrak{m}^2)-1$. 
+Because of $\mathfrak{n}/ \mathfrak{n}^2 = \mathfrak{m}/ (\mathfrak{m}^2 + \langle f \rangle)$
+it follows that this is equivalent to $f\not\in \mathfrak{m}^2$.
+\end{proof}
+
+\noindent
+We are working with schemes $X$ of the form $X =$ spec$(R/I)$ where $R$ is a 
+Noetherian ring and $I \subset R$ is a radical ideal. 
+So we can write $I = P_1 \cap\cdots\cap P_n$ with its minimal associated 
+primes $P_i=\langle f_{i1},\cdots,f_{ir_i} \rangle$. (The necessary procedures
+are implemented in the librabry {\sf{primdecint.lib}} in {\sc{Singular}}.)
+Then spec$(R/I)=$ spec$(R/P_1)\cup\cdots\cup$ spec$(R/P_n)$ 
+where spec$(R/P_i):= X_i$. 
+So we can compute the singular locus of each component $X_i$ of $X$ as follows:\\ 
+First we compute the corresponding test ideal $J_i$ which we decompose into its 
+minimal associated primes and then we can apply the above lemma. 
+For if we have a localization $R_{P_i}=\{ \frac{f}{g}\mid f\in R,\, g\not\in P_i\}$, 
+then $P_i$ is the only maximal ideal of $R_{P_i}$.\\
+
+\begin{algo}(slocusZ(I))\\
+
+{\sc{Input}}: An ideal $I=\langle f_1,\ldots,f_k\rangle \subset
+\mathbb{Z}[x_1,\ldots,x_n]$.\\
+{\sc{Output}}: A list of: [1], the ideal describing the singular locus of
+spec$(\mathbb{Z}[x_1,\ldots,x_n] / I)$ and [2], the components of [1]
+ 
+% Ich habe diese Outputform gew?t, weil man fr die Normalisierung via  
+% Parallelisierung sowieso den singul?n Ort zerlegen muss. Und da man hier im 
+% Algorithmus erst die Komponenten berechnet und dann erst miteinander
+% schneidet muss man dann ja nicht doppelt Berechnungen anstellen.
+\begin{enumerate}
+\item[$\bullet$] Compute the minimal associated primes $I = P_1 \cap\cdots\cap P_n$.
+\item[$\bullet$] For each $i=1,\ldots,n$ compute the testideal $J_i$ of $P_i$.
+\item[$\bullet$] Compute the minimal associated primes of each test ideal
+$J_i = p_{i1} \cap\cdots\cap p_{is_i}$.
+\item[$\bullet$] If $f_{ij} \in p_{is}^2$ for $j=1,\ldots,r_i$ and 
+$s=1,\ldots,s_i$, then $p_{is}$ is singular in $\mathbb{Z}[x_1,\ldots,x_n]/I$, 
+else, $p_{is}$ is regular.
+\item[$\bullet$] Intersect all singular prime ideals $p_{is}$.
+\end{enumerate} 
+\end{algo}
+ 
+
+
+\subsection{Blow Ups}
+
+
+\subsection{Normalizations}
+The normalization $\overline{A}$ of a reduced Noetherian ring $A$ is defined 
+as its integral closure in the total ring of fractions $Q(A)$, which is the 
+localization of $A$ with respect to the non-zerodivisors on $A$. 
+$A$ is called normal if $A = \overline{A}$. One basic tool we need for the three 
+normalization algorithms we present here is the notion of a test ideal. 
+For this we recall the Grauert and Remmert criterion of normality:
+
+\begin{prop}
+Let A be a Noetherian reduced ring and $J\subset A$ an ideal satisfying the
+following conditions:
+\begin{enumerate}
+\item[(1)] $J$ contains a non-zerodivisor on $A$,
+\item[(2)] $J$ is a radical ideal,
+\item[(3)] $N(A)\subset V(J)$, where
+$$N(A) = \{P \subset A,\,\text{prime ideal} \mid A_P \,\text{is not normal}\}$$
+is the non-normal locus of $A$.
+\end{enumerate}
+Then $A$ is normal if and only if $A \cong \text{Hom}_A(J,J)$, via the canonical map which 
+maps $a \in A$ to the multiplication by $a$.
+\end{prop}
+
+\noindent
+A pair $(J,x)$ with  a test ideal $J$ and $x$ a non-zerodivisor on $A$ is 
+called test pair.
+Such a test pair exists if and only if $\overline{A}$ is module-finite over $A$. 
+We can choose any radical ideal $J$ such that $N(A)\subset V(J)$ and any 
+non-zerodivisor $x\in J$, which means any element $x\in J$ if $A=R/I$ with a prime 
+ideal $I$. That is one reason why we usually do a primary decomposition of a radical 
+ideal $I$ and then we apply the normalization algorithms to each associated prime 
+of $I$. (Another reason is that we need the pro\-perty of module-finiteness of 
+the ring extensions in section 2.3.1, such that the chain of rings  becomes 
+stationary.)
+One option for the choice of $J$ is the radical ideal $J$ we described 
+in section $2$.\\
+Now we will disclose the distinctive features of the normalization 
+algorithms we implemented for reduced rings over the integers.
+
+\subsubsection{Grauert-Remmert-de Jong: Computation through an increasing chain of rings} 
+{The theoretical background of this algorithm comes from the inclusions
+$$A\subseteq\,\text{Hom}_A(J,J)\cong \frac{1}{x}(xJ,J)\subseteq\overline{A}\subseteq Q(A)$$
+% Greuel-Pfister, Lemma 3.6.1
+\noindent
+where $A$ is a reduced Neotherian ring and $J\subset A$ an ideal containing a 
+nonzero-divisor $x$.
+The first inclusion is defined by the map $a\mapsto m_a$.
+For the other inclusions we have the following Lemma:
+
+\begin{lem} 
+Let $A$ be a reduced (not necessarily Noetherian) ring, $Q(A)$ its total ring of
+fractions, and $I,J$ two $A$-submodules of $Q(A)$. Assume that $I$ contains a 
+non-zerodivisor $x$ on $A$.
+\begin{enumerate}
+\item[(1)] The map 
+$$\phi:\text{Hom}_A(I,J)\rightarrow\frac{1}{x}(xJ:_{Q(A)}I)=(J :_{Q(A)}I),\,\,
+\varphi\mapsto\frac{\varphi(x)}{x},$$
+is independent of the choice of $x$ and an isomorphism of $A$-modules.
+\item[(2)] If $J\in A$ then $(xJ:_{Q(A)}I) = (xJ:_AI)$.
+\end{enumerate}
+\end{lem}
+\begin{proof}
+\begin{enumerate}
+\item[(1)] 
+Let $q \in I$ be another non-zerodivisor on $A$. Write $x=x_1/x_0$ and 
+$q=q_1/q_0$, with $x_0,q_0\in A$ non-zerodivisors and $x_1,q_1\in A$.
+Then $c:= x_0q_0\in A$ is a non-zerodivisor and $cx,cq \in A$ with $cxq\in I$. 
+Since $\varphi\in\text{Hom}_A(I,J)$ is $A$-linear, we can write
+$$cx\varphi(q) = \varphi(cxq) = cq\varphi(x),$$
+\noindent
+so $\varphi(x)/x=\varphi(q)/q$ in $Q(A)$, showing that $\phi$ is 
+independent of $x$. Moreover, for any $f \in I$ we have 
+$$\frac{\varphi(x)}{x}f=\frac{\varphi(cx)}{cx}f=\frac{\varphi(cxf)}{cx}
+=\frac{cx\varphi(f)}{cx}=\varphi(f)\in J$$
+\noindent
+in particular $\varphi(x)f \in xJ$. This shows that the image $\phi(\varphi)$ 
+is in $1/x\,(xJ:_{Q(A)}I)$ and 
+$\varphi(x)=0\Leftrightarrow \forall\,f\in I \,\,\,\varphi(f)=0\Leftrightarrow\varphi=0$, 
+therefore $\phi$ is injective.\\
+To see that $\phi$ is surjective, let $q \in Q(A)$ satisfy $qI \subset J$. 
+Denote by $m_q \in \text{Hom}_A(I,J)$ the multiplication by $q$. 
+Then $\phi(m_q)=qx/x=q$ showing that $\phi$ is surjective.
+\item[(2)]
+During the proof of (1) we have seen that 
+$$(xJ :_{Q(A)}I)=\{\varphi(x) \mid \varphi\in\text{Hom}_A(I,J)\}.$$
+Hence, the claimed equality holds if and only if $\varphi(x) \in A$ for all 
+$\varphi\in\text{Hom}_A(I,J)$, which is clearly true if $J \subset A$.
+\end{enumerate}
+\end{proof}
+
+
+\noindent
+The inclusion $1/x\,(xJ,J)\subseteq\overline{A}$ follows from the fact 
+that any $b\in(xJ:J)$ satisfies an integral relation 
+$b^p+a_{p-1}b^{p-1}+\cdots+a_0=0,\, a_i\in\langle x^i\rangle$, hence $b/x$
+is integral over $A$.\\
+% Proposition 3.2.5 Greuel Pfister
+
+\noindent
+If $A$ is not normal, we get a proper ring extension 
+$A\varsubsetneq (\text{Hom}_A(J,J) =: A_1$.
+Then we check the normality of $A_1$  by applying Proposition $6$. 
+If $A_1$ is not normal we obtain a new ring $A_2$ by that same proposition, 
+which then has to be tested for normality, and so on. That means, we get a chain 
+of inclusions of rings
+$$A \subset A_1 \subset A_2 \subset \cdots$$
+(with rings $A_i = A[t_1,\ldots,t_{s_i}]/I_i$, where $I_i$  is an ideal in $A_i$, 
+and natural maps $\psi_i : A \hookrightarrow A_i$). 
+If we get a normal ring $A_N$, then $A_N\cong \overline{A}$, because 
+$\overline{A}$ is a finitely generated $A$-module.
+%GLS-normalization paper Lemma 2.6
+The fact which makes this algorithm practicable, is the isomorphism
+$\text{Hom}_A(J,J)\cong \frac{1}{x}(xJ:_AJ)$ allowing us to compute 
+$\text{Hom}_A(J,J)$ over $A$.
+
+\begin{lem}
+Let $A$ be a reduced Noetherian ring, and $(J,x)$ a test pair for $A$. Let
+$\{u_0 = x, u_1,\ldots,u_s\}$ be a system of generators for the $A$-module 
+$(xJ:_AJ)$. If $t_1 ,\ldots,t_s$ denote new variables, then 
+$t_j \mapsto u_j/x,\,1 < j < s$, defines an isomorphism of $A$-algebras
+$$A_1 := A[t_1,\ldots,t_s]/I_1\longrightarrow \frac{1}{x}(xJ :_AJ),$$
+with $I_1$ the kernel of the map $t_j\mapsto u_j/x$ from 
+$A[t_1,\ldots,t_s]\rightarrow\frac{1}{x}(xJ:_AJ)$.
+\end{lem}
+See Greuel and Pfister (2008, Lemma 3.6.7) for the computational aspects of this
+lemma.\\
+
+\noindent
+If we are computing in a ring over the integers, we are talking about modules 
+instead of algebras. But the algorithm works there as well, if we replace the 
+procedures in the computation through integer-compatible ones.
+The computation of the test ideal $J$ and the increasing number of variables
+in the computation of $\text{Hom}_A(J,J)$ can become sooner unpractical than 
+over a field, coefficient explosions may even interrupt the computations.
+This algorithm is implemented in the library {\sf{normalint.lib}} in {\sc{Singular}} 
+for reduced rings over the integers.\\}
+
+\subsubsection{Greuel-Laplagne-Seelisch: Computation through an increasing chain of ideals}
+{This algorithm [Greuel et al. 2010] (GLS normalization algorithm for short),
+which is also based on the Grauert and Remmert criterion, is an improvement of
+de Jongs algorithm. Most of its computations are over the original ring, so
+we can avoid many computations with additional variables.
+The idea is to compute ideals $U_1,\ldots,U_N\,\subset A$ and non-zerodivisors 
+$d_1,\ldots,d_N$ on $A$, such that
+
+$$A\subset\frac{1}{d_1}U_1\subset\cdots\subset\frac{1}{d_N}U_N=\overline{A}\subset Q(A)$$
+
+\noindent
+The GLS normalization algorithm is general more effective than de Jong's algorithm. 
+The only computation in $\text{Hom}_A(J,J)$ is the radical of the test ideal
+(GLS paper prop. 3.2).
+When the characteristic of the base field is $q > 0$, it is possible to
+compute also this radical over the original ring. For this, the Frobenius map is used, as
+described in Matsumoto (2001).
+From the construction we know that ${\frac{1}{d_i}} U_i$ is a finitely generated 
+$R$-module and hence there is a surjection
+$$R_i := R[t_1,t_2,\ldots,t_{s_i}]\rightarrow {\frac{1}{d_i}} U_i,\, t_j \mapsto u_j,$$
+where $\{d_i, u_1,\ldots,u_s\}$ is a set of $R$-module generators of $U_i$. 
+If $I_i$ denotes the kernel of this map, we get a ring isomorphism
+$$\varphi_i : A_i := R_i/I_i \rightarrow {\frac{1}{d_i}} U_i \subset Q(A).$$
+(Note that the definition of $I_i$ is now slightly different from the one given in 3.2.1).
+To obtain $A$-module generators of $\varphi_i(J_i)$ it is not enough to
+compute the images of the generators of $J_i$. But there is a simple algorithm 
+to get these generators (Algorithm 2, GLS paper).\\
+Once we have computed a test pair $(J_i,x_i)$ in $A_i$, the next step is to compute 
+the quotient $(pJ_i :_{A_i} Ji)$. The following theorem shows that this 
+computation can be carried out in the original ring $A$.
+
+\begin{thm}
+Let $A = R/I$, $A^\prime = A[t_1,\ldots,t_s]/I^\prime$  be a finite ring extension 
+and maps $\psi: A \hookrightarrow A^\prime$, $\varphi : A^\prime \hookrightarrow Q(A)$. 
+Let $(J,x)$ be a test pair for $A$ and $(J^\prime,x^\prime)$ a test pair for 
+$A^\prime$, with $x^\prime =\psi(x)$. Let $U,H$ be ideals of $A$ and $d\in A$ such that 
+$\varphi(A^\prime)=\frac{1}{d}U$ and $\varphi(J^\prime)=\frac{1}{d}H$. Then
+$$(x^\prime J^\prime:_{A^\prime} J^\prime) =\frac{1}{d}(dxH :_A H).$$
+\end{thm}
+\begin{proof}
+The proof is an easy consequence of Lemma 7. Omitting $\psi$ and $\varphi$ in 
+the following notations and applying Lemma 7 to $x\in J \subset A$ we get
+$$(xJ^\prime :_A J^\prime) = (p^\prime J^\prime :_{Q(A)} J^\prime) = (pH :_{Q(A)} H),$$
+since $Q(A^\prime) = Q(A)$ and $J^\prime = \frac{1}{d}H$.
+\noindent
+On the other hand, we can apply Lemma 7 to $dp\in H\subset A$ and get
+$$\frac{1}{d}(dpH :_A H) =\frac{1}{d}(dpH :_{Q(A)}H) = (pH :_{Q(A)}H).$$
+\end{proof}
+
+\noindent
+So now we know how to compute the ideals $U_i\subset A$.
+This algorithm works whenever Gr\"obner bases, radicals and ideal quotients can be computed in 
+rings of the form $R[t_1,\cdots,t_s]$, so the implementation for reduced rings 
+over the integers requested only the customary changes like taking care not to 
+divide trough any coefficients and replacing particular procedures through their
+relative integer-suitable ones. 
+This algorithm is also implemented in the library 
+{\sf{normalint.lib}} in {\sc{Singular}} for reduced rings over the integers.\\}
+
+\noindent
+In 2011 B\"ohm-Decker-Pfister-Laplagne-Steenpass-Steidel implemented a third 
+algorithm for the normalization of a reduced Noetherian ring $A$ over a field. 
+In view of modern multi-core computers it uses parallelization of the  GLS 
+normalization via stra\-tifying Sing$(A)$.\\
+If Sing$(A)= \{P_1,\ldots,P_s\}$ is finite, we set 
+$S_i = A\setminus P_i$ for $i=1,\ldots,s$. Then for any intermediate ring 
+$A\subset A^{(i)} \subset \overline{A}$ with $S_i^{-1}A^{(i)}=\overline{S_i^{-1}A}$ 
+the equation $\overline{A}= \sum_{i=1}^s A^{(i)}$ holds.
+So in the case of a reduced ring $A$ over the integers we can compute Sing$(A)$ and 
+normalize locally at each $P_i$ to get $\overline{A}$.\\
+All corresponding implementations for reduced rings over fields are available in 
+the {\sc{Singular}} libraries {\sf{modnormal.lib}} and {\sf{locnormal.lib}}.
+This computation also uses modular me\-thods and it is in general faster 
+than the pure GLS-normalization. It is planned to be implemented for polynomial 
+rings over the integers.
+
+
+\section{Example}
+We want to desingularize the surface $x^2+y^3z^3+y^2z^5\subset\mathbb{Q}[x,y,z]$ 
+with Lipmans algorithm. The output is a list consisting of two lists of rings. 
+The first component gives the final charts, and the second component is the list 
+of all charts.\\
+
+\begin{table}[htbp]
+	\begin{tabular}{ll}
+		\texttt{> LIB "lipmanresolve.lib"; } &  \texttt{// load the library lipmanresolve} \\
+		\texttt{> ring r=0,(x,y,z),dp;} & \texttt{// ring of char 0 with} \\
+		 &  \texttt{// variables x,y and z} \\
+		\texttt{> ideal i=x\^\ \hspace*{-0.1cm}2+y\^\ \hspace*{-0.1cm}3*z\^\ \hspace*{-0.1cm}3
+		+y\^\ \hspace*{-0.1cm}2*z\^\ \hspace*{-0.1cm}5;} & \\ \\
+		\texttt{> list l=lipmanresolve(i);} &  \texttt{// compute the desingularization} \\ \\
+		\texttt{> size(l); } &   \texttt{// the output is a list} \\
+		2 &   \texttt{// of 2 components } \\ \\
+		\texttt{> l[1]; } &   \texttt{// list of final charts} \\
+		&   \texttt{// every chart is given by} \\
+		&   \texttt{// its defining ring} \\ 
+		&   \texttt{// there are three final charts}\\ \\
+		\texttt{[1]:}  &   \\ 
+		\texttt{// characteristic : 0}         &  \\
+		\texttt{// number of vars : 2}  &   \\
+		\texttt{//} \hspace*{1.2cm} \texttt{block   1 : ordering dp}  &   \\
+		\texttt{//} \hspace*{2.7cm}  \texttt{: names    y(2) y(3)}  &   \\
+		\texttt{//}  \hspace*{1.2cm}      \texttt{block   2 : ordering C} &   \\ \\
+		\texttt{// characteristic : 0}         &  \\
+		\texttt{// number of vars : 3}  &   \\
+		\texttt{//} \hspace*{1.2cm} \texttt{block   1 : ordering dp}  &   \\
+		\texttt{//} \hspace*{2.7cm}  \texttt{: names    x(2) y(1) y(3)}  &   \\
+		\texttt{//}  \hspace*{1.2cm}      \texttt{block   2 : ordering C} &   \\ \\
+		\texttt{// characteristic : 0}         &  \\
+		\texttt{// number of vars : 3}  &   \\
+		\texttt{//} \hspace*{1.2cm} \texttt{block   1 : ordering dp}  &   \\
+		\texttt{//} \hspace*{2.7cm}  \texttt{: names    x(3) y(1) y(2)}  &   \\
+		\texttt{//}  \hspace*{1.2cm}      \texttt{block   2 : ordering C} &   \\ 
+	\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+	\begin{tabular}{ll}
+
+		\texttt{> l[2];  } &   \texttt{// list of all charts} \\
+		\texttt{[1]:}  &   \\
+		\texttt{//}   \texttt{characteristic : 0}  &   \\
+		\texttt{//}    \texttt{number of vars : 3}  &   \\
+		\texttt{//}    \hspace*{1.2cm}   \texttt{block   1 : ordering dp}  &   \\
+		\texttt{//}      \hspace*{2.7cm}   \texttt{: names    x y z}  &   \\
+		\texttt{//}      \hspace*{1.2cm}    \texttt{block   2 : ordering C}  &   \\
+		\texttt{[2]:}  &   \\
+		\texttt{//}    \texttt{characteristic : 0}  &   \\
+		\texttt{//}    \texttt{number of vars : 3}  &   \\
+		\texttt{//}     \hspace*{1cm}    \texttt{ block   1 : ordering dp}  &   \\
+		\texttt{//}      \hspace*{2.7cm} \texttt{: names    T(1) T(2) T(3)}  &   \\
+		\texttt{//}    \hspace*{1.2cm}      \texttt{block   2 : ordering C}  &   \\
+		\texttt{// characteristic : 0}         &  \\
+		\texttt{// number of vars : 2}  &   \\
+		\texttt{//} \hspace*{1.2cm} \texttt{block   1 : ordering dp}  &   \\
+		\texttt{//} \hspace*{2.7cm}  \texttt{: names    y(2) y(3)}  &   \\
+		\texttt{//}  \hspace*{1.2cm}      \texttt{block   2 : ordering C} &   \\ \\
+		\texttt{// characteristic : 0}         &  \\
+		\texttt{// number of vars : 3}  &   \\
+		\texttt{//} \hspace*{1.2cm} \texttt{block   1 : ordering dp}  &   \\
+		\texttt{//} \hspace*{2.7cm}  \texttt{: names    x(2) y(1) y(3)}  &   \\
+		\texttt{//}  \hspace*{1.2cm}      \texttt{block   2 : ordering C} &   \\ \\
+		\texttt{// characteristic : 0}         &  \\
+		\texttt{// number of vars : 3}  &   \\
+		\texttt{//} \hspace*{1.2cm} \texttt{block   1 : ordering dp}  &   \\
+		\texttt{//} \hspace*{2.7cm}  \texttt{: names    x(3) y(1) y(2)}  &   \\
+		\texttt{//}  \hspace*{1.2cm}      \texttt{block   2 : ordering C} &   \\ \\
+	\end{tabular}
+\end{table}
+
+
+
+\begin{table}[htbp]
+To see the information which is inside a concrete ring or chart it is enough to set the selected ring and proceed as follows: \\ \\
+\begin{tabular}{ll}
+\texttt{> def R22=l[2][2]; } &     \texttt{ // define a new ring} \\
+\texttt{> setring R22;}  &  \texttt{ // set this ring}  \\
+\texttt{==== intermediate scheme:}  &   \\
+\texttt{> i;}  &  \texttt{ // ideal is called i in an intermediate ring}  \\
+\texttt{$_{-}$[1]=T(3)\^\ \hspace*{-0.1cm}3+T(1)\^\ \hspace*{-0.1cm}2+T(2)*T(3)}  
+&   \texttt{ //  R22/i is the surface after a normalization}  \\
+\texttt{==== Images of variables of original ring:}  & \texttt{ // morphism defining}  \\
+\texttt{> liph;}  &   \texttt{ // the normalization}  \\
+\texttt{$_{-}$[1]=-T(1)*T(2)*T(3)} &   \\
+\texttt{$_{-}$[2]= T(2)} &   \\
+\texttt{$_{-}$[3]= T(3)} &   \\
+\texttt{> print(Path);}  &   \texttt{ //  path to this chart}   \\
+\texttt{ 0,1,}  &   \\
+\texttt{ 0,1,}  &   \\
+\texttt{ 1,1,}  &   \\
+\end{tabular}
+\texttt{  
+	// from [0,0,1] ([initial ring, initial vertex,first branch])\\
+	// to [1,1,1] ([normalization, vertex, branch of vertex above]) 
+	}
+\end{table} 
+
+\begin{table}[htbp]
+	\begin{tabular}{ll}
+		\texttt{> def R13=l[1][3]; } &     \texttt{ // define a new ring} \\
+		\texttt{> setring R13;}  &  \texttt{ // set this ring}  \\
+		\texttt{==== First final chart:}  &   \\
+		\texttt{> lip;}  &  \texttt{ // }  \\
+		\texttt{$_{-}$[1]=x(3)*y(1)\^\ \hspace*{-0.1cm}2+y(1)*y(2)+1}  & \texttt{ // morphism defining}   \\
+		\texttt{==== Images of variables of original ring:}  & \texttt{ // morphism defining}  \\
+		\texttt{> liph;}  &  \texttt{ // the normalization and the blow up }  \\
+		\texttt{$_{-}$[1]=-x(3)\^\ \hspace*{-0.1cm}5*y(1)\^\ \hspace*{-0.1cm}2*y(2)}  &   \\
+		\texttt{
+		-2*x(3)\^\ \hspace*{-0.1cm}4*y(1)*y(2)\^\ \hspace*{-0.1cm}2
+		-x(3)\^\ \hspace*{-0.1cm}3*y(2)\^\ \hspace*{-0.1cm}3}  &   \\
+		\texttt{$_{-}$[2]=-x(3)\^\ \hspace*{-0.1cm}2*y(1)*y(2)
+		-x(3)*y(2)\^\ \hspace*{-0.1cm}2}  &   \\
+		\texttt{$_{-}$[2]= x(3)}  &   \\ 
+		\texttt{==== The exceptional divisor:}  &   \\
+		\texttt{> eD;}  &   \texttt{ // the blow up}  \\
+		\texttt{$_{-}$[1]=x(3)} &   \\
+		\texttt{$_{-}$[2]=y(1)*y(2)+1} &   \\
+		\texttt{> print(Path);}  &   \texttt{ // path to this chart}   \\
+		\texttt{ 0,1,-1}  &   \\
+		\texttt{ 0,1,4}  &   \\
+		\texttt{ 1,1,3}  &   \\
+	\end{tabular}
+	\texttt{ 
+		// from [0,0,1] ([initial ring, initial vertex,first branch])  \\
+		// over [1,1,1] ([normalization, vertex, branch of vertex above]] \\
+		// to [-1,4,3] ([blow up, vertex, branch of vertex above]) 
+		}
+\end{table} 
+
+
+
+\begin{thebibliography}{4}
+
+\bibitem{GLS paper}
+G.-M. Greuel, S. Laplagne, F. Seelisch:
+ {\em Normalization of Rings}. Preprint submitted to Elsevier 13 January 2010
+
+\bibitem{Parallel Normalization}
+J. B\"ohm, W. Decker, G. Pfister, S. Laplagne, A. Steenpass, S. Steidel:
+ {\em Parallel Algorithms for Normalization}. arXiv:1110.4299v1 [math.AC] 19 Oct 2011
+
+\bibitem{GP}
+G.-M. Greuel, G. Pfister:
+ {\em A {\sc{singular}} Introduction to Commutative Algebra}.  
+ In {\it ICMS 2008}, Second Edition, pp $244-258$, 2008. Springer-Verlag Berlin Heidelberg, 2008.
+ 
+\bibitem{Matsumoto} 
+Matsumoto, R., 2001. {\em Computing the radical of an ideal in positive characteristic.} 
+J. Symbolic Comput. 32 (3), 263-271.
+
+\end{thebibliography}
+
+
+\end{document}

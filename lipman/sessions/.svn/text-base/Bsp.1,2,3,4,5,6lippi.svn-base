@@ -1,0 +1,658 @@
+BEISPIEL 1 30.8.2011:
+
+> ring r=0,(x,y,z),dp;
+> ideal i=x2-yz2;                                                     //--- Beispiel 1 ist desingularisiert nach einer N.
+> lipman(i);                                                          //--- eine Karte nach einer Sekunde mit lipman(i)
+[1]:
+   //   characteristic : 0
+//   number of vars : 2
+//        block   1 : ordering dp
+//                  : names    T(1) T(2)
+//        block   2 : ordering C
+> i=std(i);
+> isnor(i);
+0
+> ideal s=std(radical(slocus(i)));
+> s;
+s[1]=z
+s[2]=x
+> dim(s);
+1
+> dim(i);
+2
+> list n=normal(i);
+> n;
+[1]:
+   [1]:
+      //   characteristic : 0
+//   number of vars : 4
+//        block   1 : ordering dp
+//                  : names    T(1)
+//        block   2 : ordering dp
+//                  : names    x y z
+//        block   3 : ordering C
+[2]:
+   [1]:
+      _[1]=x
+      _[2]=z
+> def Newrk=n[1][1];
+> setring Newrk;
+> norid=std(norid);
+> norid;
+norid[1]=y*z^2-x^2
+norid[2]=T(1)*z-x
+norid[3]=T(1)*x-y*z
+norid[4]=T(1)^2-y
+> int homo=homog(norid);
+> homo;
+0
+> intvec rw;
+> list L=substpart(norid,normap,homo,rw);
+> L;
+[1]:
+   //   characteristic : 0
+//   number of vars : 2
+//        block   1 : ordering dp
+//                  : names    T(1) T(2)
+//        block   2 : ordering C
+> def newrk=L[1];
+> setring newrk;
+> endid=std(endid);
+> endid;
+endid[1]=0
+> endphi;
+endphi[1]=T(1)*T(2)
+endphi[2]=T(1)^2
+endphi[3]=T(2)
+
+
+
+
+
+BEISPIEL 2 30.8.2011:
+
+> ring r=0,(x,y,z),dp;
+> ideal i=x2-y2z2;                                                     //--- Beispiel 2 ist desingularisiert nach einer N.
+> i=std(i);                                                            //--- eine Karte nach einer Sekunde mit lipman(i)
+> lipman(i);
+0
+1
+s[1]=1
+[1]:
+   //   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    T(1) T(2) T(3)
+//        block   2 : ordering C
+> isnor(i);
+0
+> ideal s=std(slocus(i));
+> s;
+s[1]=x
+s[2]=yz2
+s[3]=y2z
+> dim(s);
+1
+> list n=normal(i);
+> n;
+[1]:
+   [1]:
+      //   characteristic : 0
+//   number of vars : 4
+//        block   1 : ordering dp
+//                  : names    T(1)
+//        block   2 : ordering dp
+//                  : names    x y z
+//        block   3 : ordering C
+[2]:
+   [1]:
+      _[1]=yz
+      _[2]=x
+> def Newrk=n[1][1];
+> setring Newrk;
+> norid=std(norid);
+> norid;
+norid[1]=y^2*z^2-x^2
+norid[2]=T(1)*x-y*z
+norid[3]=T(1)*y*z-x
+norid[4]=T(1)^2-1
+> normap;
+normap[1]=x
+normap[2]=y
+normap[3]=z
+> int homo=homog(norid);
+> homo;
+0
+> intvec rw;
+> list L=substpart(norid,normap,homo,rw);
+> L;
+[1]:
+   //   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    T(1) T(2) T(3)
+//        block   2 : ordering C
+> def newrk=L[1];
+> setring newrk;
+> endid;
+endid[1]=T(1)^2*T(2)^2*T(3)^2-T(2)^2*T(3)^2
+endid[2]=T(1)^2*T(2)*T(3)-T(2)*T(3)
+endid[3]=T(1)^2-1
+> isnor(endid);
+// ** i is no standard basis
+1
+> endphi;
+endphi[1]=T(1)*T(2)*T(3)
+endphi[2]=T(2)
+endphi[3]=T(3)
+> ideal s=std(slocus(endid));
+
+
+
+
+
+Beispiel 3 30.8.2011:
+
+> ring R=0,(x,y,z),dp;
+> ideal i=x2+y3z3+y2z5;                                        //--- Beispeil 3 ist desingularisiert nach einer
+> i=std(i);                                                    //--- Normalisierung und einem blowUp2
+> dim(i);
+2
+
+> lipman(i);                                                   //--- drei Karten nach einer Sekunde mit lipman(i)
+0
+1
+// ** redefining isno
+// ** redefining issing
+s[1]=T(3)
+s[2]=T(2)
+s[3]=T(1)
+// ** redefining isno
+// ** redefining Newr1 **
+// ** redefining Newr1 **
+[1]:
+   //   characteristic : 0
+//   number of vars : 2
+//        block   1 : ordering dp
+//                  : names    y(2) y(3)
+//        block   2 : ordering C
+[2]:
+   //   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    x(2) y(1) y(3)
+//        block   2 : ordering C
+[3]:
+   //   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    x(3) y(1) y(2)
+//        block   2 : ordering C
+
+> ideal s=std(radical(slocus(i)));
+> dim(s);
+1
+> isnor(i);
+0
+> list n=normal(i);
+> n;
+[1]:
+   [1]:
+      //   characteristic : 0
+//   number of vars : 4
+//        block   1 : ordering dp
+//                  : names    T(1)
+//        block   2 : ordering dp
+//                  : names    x y z
+//        block   3 : ordering C
+[2]:
+   [1]:
+      _[1]=yz4+y2z2
+      _[2]=x
+> def Newrk=n[1][1];
+> setring Newrk;
+> norid;
+norid[1]=T(1)*y*z+x
+norid[2]=-T(1)*x+y*z^4+y^2*z^2
+norid[3]=T(1)^2+z^3+y*z
+norid[4]=y^2*z^5+y^3*z^3+x^2
+> isnor(norid);
+// ** i is no standard basis
+1
+> normap;
+normap[1]=x
+normap[2]=y
+normap[3]=z
+> int homo=homog(norid);
+> homo;
+0
+> intvec rw;
+> list L=substpart(norid,normap,homo,rw);
+> L;
+[1]:
+   //   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    T(1) T(2) T(3)
+//        block   2 : ordering C
+> def newrk=L[1];
+> setring newrk;
+> endid=std(endid);
+> endid;
+endid[1]=T(3)^3+T(1)^2+T(2)*T(3)
+> isnor(endid);
+1
+> ideal s=std(radical(slocus(endid)));
+> s;
+s[1]=T(3)
+s[2]=T(2)
+s[3]=T(1)
+> dim(s);
+0
+> list b=blowUp2(endid,s);
+> b;
+[1]:
+   //   characteristic : 0
+//   number of vars : 2
+//        block   1 : ordering dp
+//                  : names    y(2) y(3)
+//        block   2 : ordering C
+[2]:
+   //   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    x(2) y(1) y(3)
+//        block   2 : ordering C
+[3]:
+   //   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    x(3) y(1) y(2)
+//        block   2 : ordering C
+> def r1=b[1];
+> setring r1;
+> Jnew;
+Jnew[1]=0
+> eD;
+eD[1]=y(3)^2+y(2)
+> ideal i=std(Jnew,radical(eD));
+> i;
+i[1]=y(3)^2+y(2)
+> isnor(i);
+1
+> ideal s=std(radical(slocus(i)));
+> s;
+s[1]=1
+> def r2=b[2];
+> setring r2;
+> Jnew;
+Jnew[1]=x(2)*y(1)^3+y(3)^2+y(1)
+> eD;
+eD[1]=x(2)
+eD[2]=y(3)^2+y(1)
+> isnor(Jnew);
+1
+> ideal i=std(Jnew,radical(eD));
+> i;
+i[1]=x(2)
+i[2]=y(3)^2+y(1)
+> isnor(i);
+1
+> ideal s=std(radical(slocus(i)));
+> s;
+s[1]=1
+> def r3=b[3];
+> setring r2;
+> Jnew;
+Jnew[1]=x(2)*y(1)^3+y(3)^2+y(1)
+> eD;
+eD[1]=x(2)
+eD[2]=y(3)^2+y(1)
+> ideal i=std(Jnew,radical(eD));
+// ** redefining i **
+> i;
+i[1]=x(2)
+i[2]=y(3)^2+y(1)
+> isnor(i);
+1
+> ideal s=std(radical(slocus(i)));
+// ** redefining s **
+> s;
+s[1]=1
+
+
+
+
+
+BEISPIEL 4 30.8.2011:
+
+> ring r=0,(x,y,z,w),dp;
+> ideal i=xy2z3-w6;                                           //--- Beispiel 4 geht nicht für Lipman, falsche Dimension
+> i=std(i);
+> dim(i);
+3
+
+
+
+
+BEISPIEL 5 30.8.2011:
+
+> ring r=0,(x,y,z,w),dp;
+> ideal i=x2-y2z2,w2+y3;                                      //--- Beispiel 5 ist desingularisiert nach einer Normalisierung
+> i=std(i);
+> dim(i);
+2
+> lipman(i);                                                  //--- eine Karte nach einer Sekunde mit lipman(i)
+0
+1
+s[1]=1
+[1]:
+   //   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    T(1) T(2) T(3)
+//        block   2 : ordering C
+
+> ideal s=std(radical(slocus(i)));
+> dim(s);
+1
+> isnor(i);
+0
+> list n=normal(i);
+> n;
+[1]:
+   [1]:
+      //   characteristic : 0
+//   number of vars : 7
+//        block   1 : ordering dp
+//                  : names    T(1) T(2) T(3)
+//        block   2 : ordering dp
+//                  : names    x y z w
+//        block   3 : ordering C
+[2]:
+   [1]:
+      _[1]=xzw
+      _[2]=xyz
+      _[3]=yz2w
+      _[4]=x2
+> def Newrk=n[1][1];
+> setring Newrk;
+> norid;
+norid[1]=T(1)*y-T(2)*w
+norid[2]=T(3)*y-w
+norid[3]=-T(1)*x+z*w
+norid[4]=T(2)*z*w-T(3)*x
+norid[5]=-T(2)*x+y*z
+norid[6]=T(2)*y*z-x
+norid[7]=T(3)*w+y^2
+norid[8]=T(1)*w+T(2)*y^2
+norid[9]=T(1)*z*w+x*y
+norid[10]=T(2)*x*y+T(3)*z*w
+norid[11]=T(1)*z^2*w+T(2)*x^2
+norid[12]=T(3)*z^2*w+x^2
+norid[13]=T(1)^2+y
+norid[14]=T(1)*T(2)-T(3)
+norid[15]=T(2)^2-1
+norid[16]=T(1)*T(3)+T(2)*y
+norid[17]=T(2)*T(3)-T(1)
+norid[18]=T(3)^2+y
+norid[19]=y^3+w^2
+norid[20]=z^2*w^2+x^2*y
+norid[21]=y^2*z^2-x^2
+> normap;
+normap[1]=x
+normap[2]=y
+normap[3]=z
+normap[4]=w
+> int homo=homog(norid);
+> homo;
+0
+> intvec rw;
+> list L=substpart(norid,normap,homo,rw);
+> L;
+[1]:
+   //   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    T(1) T(2) T(3)
+//        block   2 : ordering C
+> def newrk=L[1];
+> setring newrk;
+> endid=std(endid);
+> endid;
+endid[1]=T(1)^2-1
+> dim(endid);
+2
+> endphi;
+endphi[1]=-T(1)^3*T(2)^2*T(3)
+endphi[2]=-T(1)^2*T(2)^2
+endphi[3]=T(3)
+endphi[4]=-T(1)^2*T(2)^3
+> isnor(endid);
+1
+> ideal s=std(radical(slocus(endid)));
+> s;
+s[1]=1
+> dim(s);
+-1
+
+
+
+
+BEISPIEL 6 30.8.2011:
+
+> ideal i=x3-yz3,y4+x2w2;                                      //--- 2 Karten: 1. mit drei Unterkarten nach normal und blowUp2
+> i=std(i);                                                                    2. nach normal desingularisiert
+> ideal irad=std(radical(i));
+> irad;
+irad[1]=yz3-x3
+irad[2]=y4+x2w2
+irad[3]=xz3w2+x2y3
+> reduce(irad,i);
+_[1]=0
+_[2]=0
+_[3]=xz3w2+x2y3
+> i=irad;
+> i;
+i[1]=yz3-x3
+i[2]=y4+x2w2
+i[3]=xz3w2+x2y3
+> dim(irad);
+2
+> dim(i);
+2
+> isnor(i);
+0
+> list n=normal(i);
+> n;
+[1]:
+   [1]:
+      //   characteristic : 0
+//   number of vars : 21
+//        block   1 : ordering dp
+//                  : names    T(1) T(2) T(3) T(4) T(5) T(6) T(7) T(8) T(9) T(10) T(11) T(12) T(13) T(14) T(15) T(16) T(17)
+//        block   2 : ordering dp
+//                  : names    x y z w
+//        block   3 : ordering C
+   [2]:
+      //   characteristic : 0
+//   number of vars : 4
+//        block   1 : ordering dp
+//                  : names    x y z w
+//        block   2 : ordering C
+[2]:
+   [1]:
+      _[1]=x3y2
+      _[2]=-x4w
+      _[3]=xy3z2
+      _[4]=x2y3z
+      _[5]=-x2yz2w
+      _[6]=-x3yzw
+      _[7]=x2y2z2w
+      _[8]=-x4z3w
+      _[9]=-x6y
+      _[10]=-x4z6w
+      _[11]=-x9
+      _[12]=-x9z3
+      _[13]=x4z9w
+      _[14]=-x9z6
+      _[15]=x4z12w
+      _[16]=x4z15w
+      _[17]=x4z18w
+      _[18]=x4w
+   [2]:
+      _[1]=1
+> def R1=n[1][1];
+> setring R1;
+> norid;
+norid[1]=T(2)+1
+...
+norid[230]=z^3*w^2+x*y^3
+> int homo=homog(norid);
+> homo;
+0
+> norid=std(norid);
+> norid;
+norid[1]=y*z^3-x^3
+...
+norid[110]=T(1)^2+1
+> intvec rw;
+> list L=substpart(norid,normap,homo,rw);
+> L;
+[1]:
+   //   characteristic : 0
+//   number of vars : 4
+//        block   1 : ordering dp
+//                  : names    T(1) T(2) T(3) T(4)
+//        block   2 : ordering C
+> def r1=L[1];
+> setring r1;
+> endid;
+endid[1]=T(1)^2*T(3)^12+T(3)^12
+...
+endid[46]=T(1)^2+1
+> endid=std(endid);
+> endid;
+endid[1]=T(1)^2+1
+endid[2]=T(2)^5+T(1)*T(3)*T(4)
+> endphi;
+endphi[1]=-T(2)*T(3)
+endphi[2]=-T(2)^3
+endphi[3]=T(3)
+endphi[4]=T(4)
+> ideal s=std(slocus(endid));
+> s;
+s[1]=T(4)
+s[2]=T(3)
+s[3]=T(1)^2+1
+s[4]=T(2)^4
+> list b=blowUp2(endid,s);
+> b;
+[1]:
+   //   characteristic : 0
+//   number of vars : 5
+//        block   1 : ordering dp
+//                  : names    x(1) x(2) x(4) y(2) y(4)
+//        block   2 : ordering C
+[2]:
+   //   characteristic : 0
+//   number of vars : 5
+//        block   1 : ordering dp
+//                  : names    x(1) x(2) x(3) y(1) y(4)
+//        block   2 : ordering C
+[3]:
+   //   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    x(2) y(1) y(2)
+//        block   2 : ordering C
+> def b1=b[1];
+> setring b1;
+> Jnew;
+Jnew[1]=x(1)^2+1
+Jnew[2]=x(1)*x(2)*y(4)-x(4)*y(2)
+Jnew[3]=x(1)*x(4)*y(2)+x(2)*y(4)
+Jnew[4]=x(4)^2*y(2)^2+x(2)^2*y(4)^2
+Jnew[5]=x(2)^3*y(2)-x(1)*y(4)^2
+Jnew[6]=x(2)^4-x(4)*y(4)
+Jnew[7]=x(2)^2*x(4)*y(2)^2+y(4)^3
+> isnor(Jnew);
+0
+> ideal i=Jnew,radical(eD);
+> i;
+i[1]=x(1)^2+1
+i[2]=x(1)*x(2)*y(4)-x(4)*y(2)
+i[3]=x(1)*x(4)*y(2)+x(2)*y(4)
+i[4]=x(4)^2*y(2)^2+x(2)^2*y(4)^2
+i[5]=x(2)^3*y(2)-x(1)*y(4)^2
+i[6]=x(2)^4-x(4)*y(4)
+i[7]=x(2)^2*x(4)*y(2)^2+y(4)^3
+i[8]=y(4)
+i[9]=x(4)
+i[10]=x(2)
+i[11]=x(1)^2+1
+> isnor(i);
+1
+> ideal s=std(slocus(Jnew));
+> s;
+s[1]=y(4)^2
+s[2]=y(2)*y(4)
+s[3]=x(4)*y(4)
+s[4]=x(2)*y(4)
+s[5]=x(4)*y(2)
+s[6]=x(4)^2
+s[7]=x(1)^2+1
+s[8]=x(2)^2*y(2)^2
+s[9]=x(2)^3*y(2)
+s[10]=x(2)^3*x(4)
+s[11]=x(2)^4
+> ideal s=std(slocus(i));
+> s;
+s[1]=1
+> dim(s);
+-1
+> ideal s=std(slocus(Jnew));
+> dim(s);
+1
+> def b2=b[2];
+> setring b2;
+> ideal i=Jnew,radical(eD);
+> isnor(i);
+1
+> ideal s=std(slocus(i));
+> s;
+s[1]=1
+> def b3=b[3];
+> setring b3;
+> ideal i=Jnew,radical(eD);
+> isnor(i);
+1
+> ideal s=std(slocus(i));
+> s;
+s[1]=1
+> setring r;
+> def R2=n[1][2];
+> setring R2;
+> norid;
+norid[1]=y
+norid[2]=x
+> R2;
+//   characteristic : 0
+//   number of vars : 4
+//        block   1 : ordering dp
+//                  : names    x y z w
+//        block   2 : ordering C
+> norid;
+norid[1]=y
+norid[2]=x
+> normap;
+normap[1]=x
+normap[2]=y
+normap[3]=z
+normap[4]=w
+> isnor(norid);
+1
+> std(slocus(norid));
+_[1]=1
+
+

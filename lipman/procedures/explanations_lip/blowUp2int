@@ -1,0 +1,96 @@
+ . .4 blowUp2int
+................
+
+Procedure from library `lipmanresolve.lib' (*note lipmanresolve_lib::).
+
+*Usage:*
+     blowUp2(J,C);
+     J,C = ideals over the integers
+
+*Assume:*
+     C = ideal containing J
+
+*Note_*
+     C the ideal of the center of the blowup and J the ideal of the
+     variety
+     Important differences to blowUp from resolve.lib:
+     - V(J) itself is blown up, not the ambient space
+     - C is not assumed to be non-singular
+
+*Compute:*
+     the blowing up of J in C, the exceptional locus and the blow-up map
+
+*Return:*
+     list, say l, of size at most size(C),
+
+     l[i] is the scheme corresponding to the i-th chart each l[i]
+     contains the ideals
+     - Jnew, ideal of the blownup J
+     - eD, ideal of the new exceptional divisor
+     - bM, ideal corresponding to the blowup map
+
+*Example:*
+     LIB "lipmanresolve.lib";
+     ring r=integer,(x,y,z),dp;
+     ideal i=x3y-4x2z+2z3;
+     ideal s=slocusZ(i)[1];
+     s;
+     ==> s[1]=z
+     ==> s[2]=x
+     list b=blowUp2int(i,s);
+     b;
+     ==> [1]:
+     ==>    //   coeff. ring is : Integers
+     ==> //   number of vars : 3
+     ==> //        block   1 : ordering dp
+     ==> //                  : names    x(2) x(3) y(2)
+     ==> //        block   2 : ordering C
+     ==> [2]:
+     ==>    //   coeff. ring is : Integers
+     ==> //   number of vars : 2
+     ==> //        block   1 : ordering dp
+     ==> //                  : names    x(1) y(1) 
+     ==> //        block   2 : ordering C
+//--- we get two charts, let us look at the first one:
+     def r1=b[1];
+     setring r1;
+     Jnew;
+     ==> Jnew[1]=-x(2)*y(2)^3+4*y(2)^2-2
+//--- the strict transform
+     slocusZ(Jnew);
+     ==> [1]:
+     ==>    _[1]=1
+     ==> [2]:
+     ==>    empty list
+//--- Jnew is regular
+     eD;
+     ==> eD[1]=x(3)
+     ==> eD[2]=-x(2)*y(2)^3+4*y(2)^2-2
+//--- the exceptional divisor
+     bM;
+     ==> bM[1]=x(3)*y(2)
+     ==> bM[2]=x(2)
+     ==> bM[3]=x(3)
+//--- the blow-up-map
+//--- the second chart:
+     def r2=b[2];
+     setring r2;
+     Jnew;
+     ==> Jnew[1]=0
+     eD;
+     ==> eD[1]=x(1)
+//--- Jnew and eD are obviously regular
+     bM;
+     ==> bM[1]=x(1)
+     ==> bM[2]=-2*y(1)^3+4*y(1)
+     ==> bM[3]=x(1)*y(1)
+     setring r;   
+//--- i is desingularized after one blow up
+    
+* Menu:
+
+See also:
+* slocusZ::
+* blowUp::
+* blowUp2::
+

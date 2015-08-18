@@ -1,0 +1,864 @@
+                     SINGULAR                                 /
+ A Computer Algebra System for Polynomial Computations       /   version 3-1-2
+                                                           0<
+ by: W. Decker, G.-M. Greuel, G. Pfister, H. Schoenemann     \   Oct 2010
+FB Mathematik der Universitaet, D-67653 Kaiserslautern        \
+> LIB "all.lib";
+
+proc testideal(i) {
+	if(i == 0)
+	{
+		ideal result=1;
+		return(result);
+	}
+	i=std(i);
+        int ht=nvars(basering)-dim(i);
+	ideal j=minor(jacob(i),ht);
+	ideal tmp=i,j;
+	ideal result=radical(tmp);
+	return(result);
+}
+
+
+proc isnor(ideal i)
+{       def BAS = basering;
+
+        if (dim(i) == -1)
+        {
+            int isn = 1; 
+            return(isn);
+        }
+
+        ideal j = testideal(i);
+        qring q = std(i);
+        setring q;
+        ideal j = fetch(BAS,j);
+        poly a = j[1];
+	ideal aJJ=quotient(a*j,j);            
+	aJJ=std(aJJ);
+	ideal aa=a;
+	aa=std(aa);
+	ideal rf = interred(reduce(aJJ,aa));
+
+	if (size(rf)==0)
+        {
+         int isn = 1;
+        }
+         
+        else
+        {
+         int isn = 0;
+        }
+
+        return(isn);
+        setring BAS;
+}
+
+
+proc substpart(ideal endid, ideal endphi, int homo, intvec rw)
+{
+   def newRing = basering;
+   int ii,jj;
+   map phi = newRing,maxideal(1);    
+   list Le = elimpart(endid);
+   int q = size(Le[2]);    
+   intvec rw1 = 0;        
+   rw1[nvars(basering)] = 0;
+   rw1 = rw1+1;            //rw1=1,..,1 (as many 1 as nvars(basering))
+
+   while( size(Le[2]) != 0 )
+   {
+      endid = Le[1];
+      if ( defined(ps) )
+      { kill ps; }
+      map ps = newRing,Le[5];
+      phi = ps(phi);
+      for(ii=1;ii<=size(Le[2]);ii++)
+      {
+         phi=phi(phi);
+      }
+      //eingefuegt wegen x2-y2z2+z3
+
+      for( ii=1; ii<=size(rw1); ii++ )
+      {
+         if( Le[4][ii]==0 )        //ii = index of var which was substituted
+         {
+            rw1[ii]=0;             //substituted vars have entry 0 in rw1
+         }
+      }
+      Le=elimpart(endid);          //repeated application of elimpart
+      q = q + size(Le[2]);
+   }
+   endphi = phi(endphi);
+   if( nvars(newRing) == q )
+   {
+     ring lastRing = char(basering),T(1),dp;
+     ideal endid = T(1);
+     ideal endphi = T(1);
+     for(ii=2; ii<=q; ii++ )
+     {
+        endphi[ii] = 0;
+     }
+     export(endid,endphi);
+     list L = lastRing;
+     setring newRing;
+     return(L);
+   }
+
+   if (homo==1 && nvars(newRing)-q >1 && size(endid) >0 )
+   {
+      jj=1;
+      for( ii=2; ii<size(rw1); ii++)
+      {
+         jj++;
+         if( rw1[ii]==0 )
+         {
+            rw=rw[1..jj-1],rw[jj+1..size(rw)];
+            jj=jj-1;
+         }
+      }
+      if( rw1[1]==0 ) { rw=rw[2..size(rw)]; }
+      if( rw1[size(rw1)]==0 ){ rw=rw[1..size(rw)-1]; }
+
+      ring lastRing = char(basering),(T(1..nvars(newRing)-q)),(a(rw),dp);
+   }
+   else
+   {
+      ring lastRing = char(basering),(T(1..nvars(newRing)-q)),dp;
+   }
+   ideal lastmap;
+   jj = 1;
+
+   for(ii=1; ii<=size(rw1); ii++ )
+   {
+      if ( rw1[ii]==1 ) { lastmap[ii] = T(jj); jj=jj+1; }
+      if ( rw1[ii]==0 ) { lastmap[ii] = 0; }
+   }
+   map phi1 = newRing,lastmap;
+   ideal endid  = phi1(endid);      //### bottelneck
+   ideal endphi = phi1(endphi);
+
+/*
+Versuch: subst statt phi
+   for(ii=1; ii<=size(rw1); ii++ )
+   {
+      if ( rw1[ii]==1 ) { endid = subst(endid,var(ii),T(jj)); }
+      if ( rw1[ii]==0 ) { endid = subst(endid,var(ii),0); }
+   }
+*/
+   export(endid);
+   export(endphi);
+   list L = lastRing;
+   setring newRing;
+   return(L);
+}
+      
+   
+proc lipmanresolve(ideal i)
+{    
+ //--- assertion: i radical ideal and dim(i)=2
+     i=std(i);
+
+     if(dim(i) != 2)
+     {
+         "WARNING! The input is not of dimension 2!";
+         "The result may be wrong.";
+     }
+
+     def BAS=basering;
+     ideal irad=radical(i);
+
+     if(size(reduce(irad,std(i))) != 0)
+     {
+         "WARNING! The input is not reduced!";
+         "We will continue with the reduced part of input";
+          i=irad;
+     }
+
+     if (size(i) == 0)
+     { ideal s = 1;}
+
+     else
+     { ideal s = std(slocus(i));}
+       
+     int e = isnor(i);
+     int d = dim(s);
+     list nm,isno,issing,b,bl2,result;
+
+if (e == 1 && d > -1)
+  //---BAS/i is normal and singular
+     {
+         list b = blowUp2(i,s);
+         int r=size(b);
+         int k;
+         list isno;
+         for (k=1;k<=r;k++)
+         {
+             def Newr1 = b[k];
+             setring Newr1;
+             ideal i = std(Jnew,radical(eD));
+             ideal s = std(radical(slocus(Jnew)));
+             isno[k]=isnor(i);
+
+             if (isnor(i) == 1 && dim(s) == -1)
+             { 
+                nm[k] = Newr1;
+                ideal i = lip;
+                ideal liph = bM;
+                export(lip);
+                export(liph);
+                
+             }
+             
+             else
+             { 
+                e = 0;
+             }
+         }
+     }
+
+
+if (e == 0)
+     {
+//---BAS/i is not normal
+         if (char(BAS) == 0)
+         { list n = normal(i);}
+    
+         else
+         { list n = normalP(i,"withRing");}
+       
+         intvec rw;  
+         int rr=size(n[1]);
+         int kk,in;
+            
+         for (kk=1;kk<=rr;kk++)
+         {                      
+             def Newrk = n[1][kk];                         
+             setring Newrk;
+             map phi = BAS,normap;
+ 
+             if (defined(liph))
+                { ideal normap = phi(liph);}
+             
+             if (char(BAS) == 0)
+             {          
+                int homo = homog(norid);
+
+                if(homo == 1)
+                   { rw = ringweights(Newrk);}
+
+                list L = substpart(norid,normap,homo,rw);
+                def newrk = L[1];
+                setring newrk;
+                ideal i = std(endid);
+                kill homo;
+             }
+
+             else
+             {   
+                ideal i = std(norid);
+             }
+
+             if (size(i) == 0)
+                {ideal s = 1; isno[kk] = 1;}
+
+             else
+                { ideal s = std(radical(slocus(i))); isno[kk]=isnor(i);}
+
+             if (size(reduce(1,s)) == 0)
+             {    
+                 issing[kk] = 0;
+                 nm[kk] = newrk;
+                 module path = kk;
+                 export(path);
+                 ideal lip = i;
+                 ideal liph = endphi;
+                 export(lip);
+                 export(liph);
+             }
+                
+             else
+             {
+                 b = blowUp2(i,s);
+                 int r = size(b);
+                 int k;
+                 for (k=1;k<=r;k++)
+                 {
+                     def Newr1 = b[k];
+                     setring Newr1;
+                     ideal i = std(Jnew,radical(eD));
+                     map phi = BAS,bM;
+
+                     if (defined(endphi))
+                     { ideal liph = phi(endphi);}
+
+                     else
+                     { ideal liph = bM;}
+       
+                     export(liph);
+                     in = isnor(i);
+
+                     if (in == 1)
+                     {  
+                        bl2[k]= Newr1;
+                        ideal lip = i;
+                        module path = [kk,k];
+                        export(path);
+                        export(lip);
+                     }
+
+                 kill Newr1;
+
+                 }
+             } 
+
+             kill Newrk,L;
+             setring BAS;
+ 
+         }
+     }
+     
+     if (size(nm) !=0 && size(bl2) != 0)
+     { result = nm,bl2;}
+
+     if (size(bl2) == 0)
+     { result = nm;}
+
+     else
+     { result = bl2;}
+
+     return(result);
+}   
+
+
+
+
+
+proc lipmanresolve2(ideal i)
+{    
+ //--- assertion: i radical ideal and dim(i)=2
+   i = std(i);
+
+   if(dim(i) != 2)
+   { "WARNING! The input is not of dimension 2!";
+      "The result may be wrong.";}
+
+   def BAS = basering;
+   ideal irad = radical(i);
+
+   if(size(reduce(irad,std(i))) != 0)
+   { "WARNING! The input is not reduced!";
+     "We will continue with the reduced part of input";
+      i=irad;}
+
+   
+   int ii;
+   list allRings,endRings;
+   allRings[1] = BAS;
+   allRings;
+
+ while(ii < size(allRings))
+ {
+   ii++;
+   ii;
+   def S = allRings[ii];
+   S;
+   setring S;
+   
+   if (size(i) == 0)
+   { ideal s = 1;}
+
+   else
+   { ideal s = std(slocus(i));}
+       
+   int e = isnor(i);
+   e;
+   int d = dim(s);
+   d;
+
+   if (e == 1 && d == -1)
+   { 
+//---S/i is normal and regular
+       ideal lip = i;
+
+       if (defined(liph) == 0)
+       { ideal liph = maxideal(1);}
+
+       export(lip);
+       export(liph);
+       endRings[size(endRings)+1] = S,"lip","liph","path";
+   }
+
+   if (e == 1 && d > -1)
+   {
+//---S/i is normal and singular
+       list b = blowUp2(i,s);
+       int r = size(b);
+       int k;
+       for (k=1;k<=r;k++)
+       {
+          def Newr1 = b[k];
+          setring Newr1;
+          allRings[size(allRings)+1] = Newr1,"blowup-chart";
+          ideal i = std(Jnew,radical(eD));
+          map phi = S,bM;
+
+          if (defined(liph))
+          { ideal liph = phi(liph);}
+
+          else
+          { ideal liph = maxideal(1);}
+
+          export(liph);
+          kill Newr1;
+          setring S;
+       }
+
+       kill b,k,r;
+   }
+
+
+   if (e == 0)
+   {
+//---S/i is not normal
+       if (char(S) == 0)
+       { list n = normal(i);}
+    
+       else
+       { list n = normalP(i,"withRing");}
+       
+       intvec rw;  
+       int rr=size(n[1]);
+       int kk;
+            
+       for (kk=1;kk<=rr;kk++)
+       {                      
+           def Newrk = n[1][kk];                         
+           setring Newrk;
+           map nor = S,normap;
+ 
+           if (defined(liph))
+           { ideal liph = nor(liph);}
+
+           else
+           { ideal liph = normap;}
+             
+           if (char(S) == 0)
+           {          
+              int homo = homog(norid);
+
+              if(homo == 1)
+              { rw = ringweights(Newrk);}
+
+              list L = substpart(norid,normap,homo,rw);
+              def newrk = L[1];
+              setring newrk;
+              allRings[size(allRings)+1] = newrk;
+              ideal i = std(endid);
+              map phi = Newrk,endphi;
+              ideal liph = phi(liph);
+              kill homo,rw,phi,newrk;
+           }
+
+           else
+           { 
+              ideal i = std(norid);
+              allRings[size(allRings)+1] = Newrk;
+           } 
+
+           export(liph);
+           kill Newrk,L;
+           setring S;
+       }
+
+       kill kk,n,rr;
+    }
+ }  
+ 
+ list result = endRings,allRings;
+ return(result);
+};
+
+// ** loaded /usr/share/Singular/LIB/all.lib (13536,2010-10-18)
+// ** loaded /usr/share/Singular/LIB/qmatrix.lib (13334,2010-09-29)
+// ** loaded /usr/share/Singular/LIB/perron.lib (12231,2009-11-02)
+// ** loaded /usr/share/Singular/LIB/nctools.lib (13467,2010-10-13)
+// ** loaded /usr/share/Singular/LIB/ncdecomp.lib (12790,2010-05-14)
+// ** loaded /usr/share/Singular/LIB/ncalg.lib (13403,2010-10-06)
+// ** loaded /usr/share/Singular/LIB/involut.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/gkdim.lib (12235,2009-11-03)
+// ** loaded /usr/share/Singular/LIB/freegb.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/dmodvar.lib (13492,2010-10-14)
+// ** loaded /usr/share/Singular/LIB/dmodapp.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/dmod.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/central.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/bfun.lib (13483,2010-10-13)
+// ** loaded /usr/share/Singular/LIB/zeroset.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/weierstr.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/tropical.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/triang.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/toric.lib (12330,2009-11-26)
+// ** loaded /usr/share/Singular/LIB/teachstd.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/surfex.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/surf.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/stratify.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/spectrum.lib (12231,2009-11-02)
+// ** loaded /usr/share/Singular/LIB/spcurve.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/solve.lib (12231,2009-11-02)
+// ** loaded /usr/share/Singular/LIB/signcond.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/sing4ti2.lib (13269,2010-09-23)
+// ** loaded /usr/share/Singular/LIB/sing.lib (12394,2010-01-04)
+// ** loaded /usr/share/Singular/LIB/sheafcoh.lib (13328,2010-09-29)
+// ** loaded /usr/share/Singular/LIB/sagbi.lib (13505,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/rootsur.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/rootsmr.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/rinvar.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/ring.lib (12231,2009-11-02)
+// ** loaded /usr/share/Singular/LIB/reszeta.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/resolve.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/resgraph.lib (12231,2009-11-02)
+// ** loaded /usr/share/Singular/LIB/resbin.lib $Id: resbin.lib$
+// ** loaded /usr/share/Singular/LIB/reesclos.lib (1.32,2001/01/16)
+// ** loaded /usr/share/Singular/LIB/redcgs.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/realrad.lib (13352,2010-09-30)
+// ** loaded /usr/share/Singular/LIB/random.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/qhmoduli.lib (12790,2010-05-14)
+// ** loaded /usr/share/Singular/LIB/primitiv.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/primdec.lib (13403,2010-10-06)
+// ** loaded /usr/share/Singular/LIB/presolve.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/polymake.lib (12231,2009-11-02)
+// ** loaded /usr/share/Singular/LIB/poly.lib (12443,2010-01-19)
+// ** loaded /usr/share/Singular/LIB/pointid.lib (12231,2009-11-02)
+// ** loaded /usr/share/Singular/LIB/phindex.lib (12571,2010-03-01)
+// ** loaded /usr/share/Singular/LIB/ntsolve.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/normaliz.lib (12790,2010-05-14)
+// ** loaded /usr/share/Singular/LIB/normal.lib (13488,2010-10-14)
+// ** loaded /usr/share/Singular/LIB/noether.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/mregular.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/mprimdec.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/monomialideal.lib (13403,2010-10-06)
+// ** loaded /usr/share/Singular/LIB/mondromy.lib (12231,2009-11-02)
+// ** loaded /usr/share/Singular/LIB/modstd.lib (13536,2010-10-18)
+// ** loaded /usr/share/Singular/LIB/matrix.lib (12898,2010-06-23)
+// ** loaded /usr/share/Singular/LIB/makedbm.lib (12231,2009-11-02)
+// ** loaded /usr/share/Singular/LIB/lll.lib (12231,2009-11-02)
+// ** loaded /usr/share/Singular/LIB/linalg.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/latex.lib (13477,2010-10-13)
+// ** loaded /usr/share/Singular/LIB/kskernel.lib (12231,2009-11-02)
+// ** loaded /usr/share/Singular/LIB/jacobson.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/intprog.lib (12231,2009-11-02)
+// ** loaded /usr/share/Singular/LIB/inout.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/hyperel.lib (12231,2009-11-02)
+// ** loaded /usr/share/Singular/LIB/homolog.lib (12381,2009-12-11)
+// ** loaded /usr/share/Singular/LIB/hnoether.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/grwalk.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/groups.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/graphics.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/gmssing.lib (13548,2010-10-19)
+// ** loaded /usr/share/Singular/LIB/gmspoly.lib (12529,2010-02-08)
+// ** loaded /usr/share/Singular/LIB/general.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/finvar.lib (13326,2010-09-29)
+// ** loaded /usr/share/Singular/LIB/equising.lib (13483,2010-10-13)
+// ** loaded /usr/share/Singular/LIB/elim.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/deform.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/decodegb.lib (13483,2010-10-13)
+// ** loaded /usr/share/Singular/LIB/curvepar.lib (13536,2010-10-18)
+// ** loaded /usr/share/Singular/LIB/crypto.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/control.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/compregb.lib (12231,2009-11-02)
+// ** loaded /usr/share/Singular/LIB/classify.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/cimonom.lib (13536,2010-10-18)
+// ** loaded /usr/share/Singular/LIB/brnoeth.lib (13312,2010-09-29)
+// ** loaded /usr/share/Singular/LIB/atkins.lib (12932,2010-06-30)
+// ** loaded /usr/share/Singular/LIB/assprimeszerodim.lib (13536,2010-10-18)
+// ** loaded /usr/share/Singular/LIB/arcpoint.lib (12231,2009-11-02)
+// ** loaded /usr/share/Singular/LIB/algebra.lib (12436,2010-01-15)
+// ** loaded /usr/share/Singular/LIB/alexpoly.lib (13499,2010-10-15)
+// ** loaded /usr/share/Singular/LIB/aksaka.lib (13536,2010-10-18)
+// ** loaded /usr/share/Singular/LIB/ainvar.lib (13536,2010-10-18)
+// ** loaded /usr/share/Singular/LIB/absfact.lib (13534,2010-10-18)
+. ;
+> ideal i=x2+y3z3+y2z5;
+   ? no ring active
+   ? `ideal` is undefined
+   ? error occurred in or before STDIN line 1860: `ideal i=x2+y3z3+y2z5;`
+> ring r=0,(x,y,z),dp;
+> ideal i=x2+y3z3+y2z5;
+> list l=lipmanresolve2(i);
+[1]:
+   //   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    x y z
+//        block   2 : ordering C
+1
+//   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    x y z
+//        block   2 : ordering C
+0
+1
+2
+// ** redefining S **
+//   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    T(1) T(2) T(3)
+//        block   2 : ordering C
+// ** redefining e **
+1
+// ** redefining d **
+0
+3
+// ** redefining S **
+// ** right side is not a datum, assignment ignored
+`S`
+   ? S is no name of a ring/qring
+   ? error occurred in or before ::lipmanresolve2 line 53: `   setring S;`
+   ? leaving ::lipmanresolve2
+   skipping text from `;` error at token `)`
+> l;
+empty list
+> proc lipmanresolve2(ideal i)
+{    
+ //--- assertion: i radical ideal and dim(i)=2
+   i = std(i);
+
+   if(dim(i) != 2)
+   { "WARNING! The input is not of dimension 2!";
+      "The result may be wrong.";}
+
+   def BAS = basering;
+   ideal irad = radical(i);
+
+   if(size(reduce(irad,std(i))) != 0)
+   { "WARNING! The input is not reduced!";
+     "We will continue with the reduced part of input";
+      i=irad;}
+
+   
+   int ii;
+   list allRings,endRings;
+   allRings[1] = BAS;
+   allRings;
+
+ while(ii < size(allRings))
+ {
+   ii++;
+   ii;
+   def S = allRings[ii];
+   S;
+   setring S;
+   
+   if (size(i) == 0)
+   { ideal s = 1;}
+
+   else
+   { ideal s = std(slocus(i));}
+       
+   int e = isnor(i);
+   e;
+   int d = dim(s);
+   d;
+
+   if (e == 1 && d == -1)
+   { 
+//---S/i is normal and regular
+       ideal lip = i;
+
+       if (defined(liph) == 0)
+       { ideal liph = maxideal(1);}
+
+       export(lip);
+       export(liph);
+       endRings[size(endRings)+1] = S,"lip","liph","path";
+   }
+
+   if (e == 1 && d > -1)
+   {
+//---S/i is normal and singular
+       list b = blowUp2(i,s);
+       int r = size(b);
+       int k;
+       for (k=1;k<=r;k++)
+       {
+          def Newr1 = b[k];
+          setring Newr1;
+          allRings[size(allRings)+1] = Newr1;
+          ideal i = std(Jnew,radical(eD));
+          map phi = S,bM;
+
+          if (defined(liph))
+          { ideal liph = phi(liph);}
+
+          else
+          { ideal liph = maxideal(1);}
+
+          export(liph);
+          kill Newr1;
+          setring S;
+       }
+
+       kill b,k,r;
+   }
+
+
+   if (e == 0)
+   {
+//---S/i is not normal
+       if (char(S) == 0)
+       { list n = normal(i);}
+    
+       else
+       { list n = normalP(i,"withRing");}
+       
+       intvec rw;  
+       int rr=size(n[1]);
+       int kk;
+            
+       for (kk=1;kk<=rr;kk++)
+       {                      
+           def Newrk = n[1][kk];                         
+           setring Newrk;
+           map nor = S,normap;
+ 
+           if (defined(liph))
+           { ideal liph = nor(liph);}
+
+           else
+           { ideal liph = normap;}
+             
+           if (char(S) == 0)
+           {          
+              int homo = homog(norid);
+
+              if(homo == 1)
+              { rw = ringweights(Newrk);}
+
+              list L = substpart(norid,normap,homo,rw);
+              def newrk = L[1];
+              setring newrk;
+              allRings[size(allRings)+1] = newrk;
+              ideal i = std(endid);
+              map phi = Newrk,endphi;
+              ideal liph = phi(liph);
+              kill homo,rw,phi,newrk;
+           }
+
+           else
+           { 
+              ideal i = std(norid);
+              allRings[size(allRings)+1] = Newrk;
+           } 
+
+           export(liph);
+           kill Newrk,L;
+           setring S;
+       }
+
+       kill kk,n,rr;
+    }
+ }  
+ 
+ list result = endRings,allRings;
+ return(result);
+};
+// ** redefining lipmanresolve2 **
+> list l=lipmanresolve2(i);
+// ** redefining l **
+[1]:
+   //   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    x y z
+//        block   2 : ordering C
+1
+//   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    x y z
+//        block   2 : ordering C
+0
+1
+2
+// ** redefining S **
+//   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    T(1) T(2) T(3)
+//        block   2 : ordering C
+// ** redefining e **
+1
+// ** redefining d **
+0
+3
+// ** redefining S **
+//   characteristic : 0
+//   number of vars : 2
+//        block   1 : ordering dp
+//                  : names    y(2) y(3)
+//        block   2 : ordering C
+// ** redefining e **
+1
+// ** redefining d **
+-1
+// ** `liph` is already global
+4
+// ** redefining S **
+//   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    x(2) y(1) y(3)
+//        block   2 : ordering C
+// ** redefining e **
+1
+// ** redefining d **
+-1
+// ** `liph` is already global
+5
+// ** redefining S **
+//   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    x(3) y(1) y(2)
+//        block   2 : ordering C
+// ** redefining e **
+1
+// ** redefining d **
+-1
+// ** `liph` is already global
+> l;
+[1]:
+[2]:
+   [1]:
+      //   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    x y z
+//        block   2 : ordering C
+   [2]:
+      //   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    T(1) T(2) T(3)
+//        block   2 : ordering C
+   [3]:
+      //   characteristic : 0
+//   number of vars : 2
+//        block   1 : ordering dp
+//                  : names    y(2) y(3)
+//        block   2 : ordering C
+   [4]:
+      //   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    x(2) y(1) y(3)
+//        block   2 : ordering C
+   [5]:
+      //   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    x(3) y(1) y(2)
+//        block   2 : ordering C
+> 

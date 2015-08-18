@@ -1,0 +1,87 @@
+\documentclass[12pt]{article}
+\usepackage{amsfonts}
+\usepackage[latin1]{inputenc}
+\usepackage{amsmath,amsthm,amsxtra,amssymb}
+\usepackage{rotating}
+\usepackage{moreverb}
+\usepackage{epsfig}
+
+\newtheorem{satz}{Satz}
+\newtheorem{thm}[satz]{Theorem}
+\newtheorem{exercise}[satz]{Aufgabe}
+
+\begin{document}
+
+   \pagestyle{empty}
+   \parindent0cm
+    
+   
+
+
+   \begin{center}
+     {\Large \bf COMPUTATIONAL TOOLS FOR MODELS OF CURVES: NORMALIZATION} 
+     \end{center}
+   \vspace{0.5cm}
+   \normalsize
+   \parindent0cm
+
+    
+   
+\textbf{Our Project: Algorithmic methods for arithmetic surfaces and re\-gular, minimal models.}\\
+
+$2-$dimensional, irreducible, reduced schemes $\pi:X\,\Longrightarrow S$ are arithmetic surfaces
+if $S$ is a Dedekindscheme and $\pi$ is projective and flat.
+They are models of algebraic curves over number fields.\\
+
+One of our main topics is Lipmans desingularization algorithm:\\
+Let $X$ be an excellent, Noetherian, reduced and $2-$dimensional scheme. Then the following sequence
+$$ \cdots X_{i+1}\rightarrow X_i^\prime\rightarrow X_i\rightarrow\cdots\rightarrow X_1\rightarrow X_0=X$$
+with normalizations  $X_i^\prime\rightarrow X_i$ and blow-ups $X_{i+1}\rightarrow X_i^\prime$ 
+along Sing$(X_i^\prime)$ is finite and $X$ has a strong desingularization.\\
+
+Lipman also works for arithmetic surfaces because they are of finite type over $S$ and hence 
+Noetherian and excellent. The bottleneck of the algorithm are the normalizations.
+Let us look at three different normalization algorithms:\\
+
+Let $I$ be a radical ideal in a Noetherian ring $R$ and $A = R/I$ (reduced Noetherian ring). We 
+want to compute the normalization $\overline{A}$ of $A$.\\
+
+\begin{enumerate}
+\item[1.] Grauert-Remmert-de Jong: Computation through an increasing chain of rings. The 
+theoretical background comes from the inclusions
+
+$$A\subseteq\,\text{Hom}_A(J,J)\cong \frac{1}{x}(xJ,J)\subseteq\overline{A}\subseteq Q(A)$$
+
+where $(J,x)$ is a so called test pair for $A$. That means $A=\overline{A}\,\,\Longleftrightarrow\,\,A=\text{Hom}_A(J,J)$.
+The computation of the radical $J$ (test ideal) and the increasing number of variables
+in the computation of $\text{Hom}_A(J,J)$ can become unpractical.
+
+Implemented in Singular for reduced rings over the integers.\\
+
+\item[2.] Greuel-Laplagne-Seelisch: Computation through an increasing chain of ideals.
+We compute ideals $U_1,\ldots,U_N\,\subset A$ and non-zerodivisors $d_1,\ldots,d_N$ on $A$, such that
+
+$$A\subset\frac{1}{d_1}U_1\subset\cdots\subset\frac{1}{d_N}U_N=\overline{A}\subset Q(A)$$
+
+In general more effective than algorithm $1$, the only computation in $\text{Hom}_A(J,J)$ is the 
+radical of the test ideal.\\
+Works whenever Gr\"obner bases, radicals and ideal quotients can be computed in rings of the form $R[t_1,\cdots,t_s]$.
+
+Also implemented in Singular for reduced rings over the integers.\\
+
+\item[3.] B\"ohm-Decker-Pfister-Laplagne-Steenpass-Steidel: Parallelization by stra\-tifying Sing$(A)$.
+(Non-normal-locus $N(A)\subset$ Sing$(A)$.)\\
+Used techniques: Normalization via localization and modular me\-thods.
+
+In general even faster than algorithm $2$, next thing to look at for polynomial rings over the integers!
+
+\end{enumerate}
+
+
+
+
+
+
+\end{document}
+
+   

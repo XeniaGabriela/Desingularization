@@ -1,0 +1,137 @@
+﻿> ring r=integer,(x,y),dp;
+// ** You are using coefficient rings which are not fields.
+// ** Please note that only limited functionality is available
+// ** for these coefficients.
+// ** 
+// ** The following commands are meant to work:
+// ** - basic polynomial arithmetic
+// ** - std
+// ** - syz
+// ** - lift
+// ** - reduce
+
+> ideal i=x3+y5-2xy2;
+> isprimZ(i);
+1
+> isnor(i);
+0
+> list n=normalZGLS(i);
+// ** redefining n **
+> n;
+[1]:
+   [1]:
+      //   coeff. ring is : Integers
+//   number of vars : 4
+//        block   1 : ordering dp
+//                  : names    T(1) T(2)
+//        block   2 : ordering dp
+//                  : names    x y
+//        block   3 : ordering C
+[2]:
+   [1]:
+      _[1]=xy
+      _[2]=x2
+      _[3]=y2
+> def r1=n[1][1];
+> setring r1;
+> norid;
+norid[1]=T(1)*y-x
+norid[2]=-T(1)*x+T(2)*y
+norid[3]=2*T(1)*y-T(2)*x-y^3
+norid[4]=-T(1)*y^4-T(2)*x^2+2*T(2)*y^2
+norid[5]=T(1)^2-T(2)
+norid[6]=T(1)*T(2)-2*T(1)+y^2
+norid[7]=T(2)^2-2*T(2)+x*y
+norid[8]=y^5+x^3-2*x*y^2
+> list e=elimvar(norid,normap);
+> e;
+[1]:
+   //   coeff. ring is : Integers
+//   number of vars : 2
+//        block   1 : ordering dp
+//                  : names    T(1) y
+//        block   2 : ordering C
+[2]:
+   eli
+[3]:
+   ephi
+[4]:
+   1
+> def r2=e[1];
+> setring r2;
+> eli;
+eli[1]=T(1)^3+y^2-2*T(1)
+> ephi;
+ephi[1]=T(1)*y
+ephi[2]=y
+> slocusZ(eli);
+[1]:
+   _[1]=2
+   _[2]=y
+   _[3]=T(1)
+[2]:
+   [1]:
+      _[1]=2
+      _[2]=y
+      _[3]=T(1)
+> ideal s=singid(eli);
+> s;
+s[1]=2
+s[2]=y
+s[3]=T(1)
+> list b=blowUp2int(eli,s);
+> b;
+[1]:
+   //   coeff. ring is : Integers
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    y(1) y(2) y(3)
+//        block   2 : ordering C
+[2]:
+   //   coeff. ring is : Integers
+//   number of vars : 4
+//        block   1 : ordering dp
+//                  : names    x(2) y(1) y(2) y(3)
+//        block   2 : ordering C
+[3]:
+   //   coeff. ring is : Integers
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    y(1) y(2) y(3)
+//        block   2 : ordering C
+> def b1=b[1];
+> setring b1;
+> Jnew;
+Jnew[1]=2*y(3)^3+y(2)^2-y(3)
+> singid(Jnew);
+_[1]=1
+> eD;
+eD[1]=1
+> bM;
+bM[1]=2*y(3)
+bM[2]=2*y(2)
+> def b2=b[2];
+> setring b2;
+> Jnew;
+Jnew[1]=x(2)*y(1)-2
+Jnew[2]=y(1)^2*y(3)-2*y(3)^3-y(1)
+Jnew[3]=x(2)*y(3)^3-y(1)*y(3)+1
+> singid(Jnew);
+_[1]=1
+> eD;
+eD[1]=1
+> bM;
+bM[1]=x(2)*y(3)
+bM[2]=x(2)
+> def b3=b[3];
+> setring b3;
+> Jnew;
+Jnew[1]=-y(1)*y(2)^2+y(1)^2-2
+> singid(Jnew);
+_[1]=1
+> eD;
+eD[1]=1
+> bM;
+bM[1]=-y(2)^2+y(1)
+bM[2]=-y(2)^3+y(1)*y(2)
+> 

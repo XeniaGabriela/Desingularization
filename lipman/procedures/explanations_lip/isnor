@@ -1,0 +1,48 @@
+ . .2 isnor
+...........
+
+Procedure from library `lipmanresolve.lib' (*note lipmanresolve_lib::).
+
+*Usage:*
+     isnor(i);
+     
+*Assume:*
+     i prime ideal over the integers or a field  
+
+*Return:*
+     an integer k = 1 if i is normal, 0 else
+     
+
+*Example:*
+     LIB "lipmanresolve.lib";
+     ring R=0,(x,y,z),dp;
+     ideal I=x2-y3;
+     isnor(I);
+     ==> 0
+     list n=normal(I);
+     def newr=n[1][1];
+//--- the new ring
+     setring newr;
+     norid;
+     ==> norid[1]=-T(1)*y+x
+     ==> norid[2]=-T(1)*x+y^2
+     ==> norid[3]=T(1)^2-y
+     ==> norid[4]=y^3-x^2
+//--- newr/norid is the normalization of R/I
+     isnor(norid);
+     ==> 1
+     ring RZ=integer,(x,y,z),dp;
+     ideal A=x4+y2+z2;
+     isnor(A);
+     ==> 1
+//--- A is already normal
+     
+     
+    
+* Menu:
+
+See also:
+* normalC::
+* normalZ::
+* normalZGLS::
+

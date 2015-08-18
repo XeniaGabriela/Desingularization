@@ -1,0 +1,447 @@
+> ring r=0,(x,y,z),dp;
+
+proc lipmanresolve2(ideal i)
+{    
+ //--- assertion: i radical ideal and dim(i)=2
+   i = std(i);
+
+   if(dim(i) != 2)
+   { "WARNING! The input is not of dimension 2!";
+      "The result may be wrong.";}
+
+   def BAS = basering;
+   ideal irad = radical(i);
+
+   if(size(reduce(irad,std(i))) != 0)
+   { "WARNING! The input is not reduced!";
+     "We will continue with the reduced part of input";
+      i=irad;}
+
+   list allRings,endRings;
+   allRings[1] = BAS;
+   int ii;
+
+ while(ii < size(allRings))
+ {
+   ii++;
+   def S = allRings[ii];
+   setring S;
+   
+   if (size(i) == 0)
+   { ideal s = 1;}
+
+   else
+   { ideal s = std(slocus(i));}
+       
+   int e = isnor(i);
+   int d = dim(s);
+
+   if (e == 1 && d == -1)
+   { 
+//---S/i is normal and regular
+       ideal lip = i;
+
+       if (defined(liph) == 0)
+       { ideal liph = maxideal(1);}
+
+       export(lip);
+       export(liph);
+       endRings[size(endRings)+1] = S;
+       kill S;
+   }
+
+   if (e == 1 && d > -1)
+   {
+//---S/i is normal and singular
+       list b = blowUp2(i,s);
+       int r = size(b);
+       int k;
+       for (k=1;k<=r;k++)
+       {
+          def Newr1 = b[k];
+          setring Newr1;
+          allRings[size(allRings)+1] = Newr1;
+          ideal i = std(Jnew,radical(eD));
+          map phi = S,bM;
+
+          if (defined(liph))
+          { ideal liph = phi(liph);}
+
+          else
+          { ideal liph = maxideal(1);}
+
+          export(liph);
+          kill Newr1;
+          setring S;
+       }
+
+       kill b,k,r;
+   }
+
+
+   if (e == 0)
+   {
+//---S/i is not normal
+       if (char(S) == 0)
+       { list n = normal(i);}
+    
+       else
+       { list n = normalP(i,"withRing");}
+       
+       intvec rw;  
+       int rr=size(n[1]);
+       int kk;
+            
+       for (kk=1;kk<=rr;kk++)
+       {                      
+           def Newrk = n[1][kk];                         
+           setring Newrk;
+           map nor = S,normap;
+ 
+           if (defined(liph))
+           { ideal liph = nor(liph);}
+
+           else
+           { ideal liph = normap;}
+             
+           if (char(S) == 0)
+           {          
+              int homo = homog(norid);
+
+              if(homo == 1)
+              { rw = ringweights(Newrk);}
+
+              list L = substpart(norid,normap,homo,rw);
+              def newrk = L[1];
+              setring newrk;
+              allRings[size(allRings)+1] = newrk;
+              ideal i = std(endid);
+              map phi = Newrk,endphi;
+              ideal liph = phi(liph);
+              kill homo,rw,phi,newrk;
+           }
+
+           else
+           { 
+              ideal i = std(norid);
+              allRings[size(allRings)+1] = Newrk;
+           } 
+
+           export(liph);
+           kill Newrk,L;
+           setring S;
+       }
+
+       kill kk,n,rr;
+    }
+ }  
+ 
+ list result = endRings,allRings;
+ return(result);
+};
+// ** redefining lipmanresolve2 **
+> list l=lipmanresolve2(i);
+// ** redefining l **
+0
+[1]:
+   //   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    x y z
+//        block   2 : ordering C
+empty list
+//   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    x y z
+//        block   2 : ordering C
+0
+1
+1
+[1]:
+   //   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    x y z
+//        block   2 : ordering C
+[2]:
+   //   characteristic : 0
+//   number of vars : 2
+//        block   1 : ordering dp
+//                  : names    T(1) T(2)
+//        block   2 : ordering C
+empty list
+// ** redefining S **
+//   characteristic : 0
+//   number of vars : 2
+//        block   1 : ordering dp
+//                  : names    T(1) T(2)
+//        block   2 : ordering C
+// ** redefining e **
+1
+// ** redefining d **
+-1
+// ** `liph` is already global
+> l;
+[1]:
+   [1]:
+      //   characteristic : 0
+//   number of vars : 2
+//        block   1 : ordering dp
+//                  : names    T(1) T(2)
+//        block   2 : ordering C
+[2]:
+   [1]:
+      //   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    x y z
+//        block   2 : ordering C
+   [2]:
+      //   characteristic : 0
+//   number of vars : 2
+//        block   1 : ordering dp
+//                  : names    T(1) T(2)
+//        block   2 : ordering C
+
+
+> ideal i=x2+y3z3+y2z5;
+// ** redefining i **
+> list l=lipmanresolve2(i);
+// ** redefining l **
+0
+[1]:
+   //   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    x y z
+//        block   2 : ordering C
+empty list
+//   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    x y z
+//        block   2 : ordering C
+0
+1
+1
+[1]:
+   //   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    x y z
+//        block   2 : ordering C
+[2]:
+   //   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    T(1) T(2) T(3)
+//        block   2 : ordering C
+empty list
+// ** redefining S **
+//   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    T(1) T(2) T(3)
+//        block   2 : ordering C
+// ** redefining e **
+1
+// ** redefining d **
+0
+2
+[1]:
+   //   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    x y z
+//        block   2 : ordering C
+[2]:
+   //   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    T(1) T(2) T(3)
+//        block   2 : ordering C
+[3]:
+   //   characteristic : 0
+//   number of vars : 2
+//        block   1 : ordering dp
+//                  : names    y(2) y(3)
+//        block   2 : ordering C
+[4]:
+   //   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    x(2) y(1) y(3)
+//        block   2 : ordering C
+[5]:
+   //   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    x(3) y(1) y(2)
+//        block   2 : ordering C
+empty list
+// ** redefining S **
+//   characteristic : 0
+//   number of vars : 2
+//        block   1 : ordering dp
+//                  : names    y(2) y(3)
+//        block   2 : ordering C
+// ** redefining e **
+1
+// ** redefining d **
+-1
+// ** `liph` is already global
+3
+[1]:
+   //   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    x y z
+//        block   2 : ordering C
+[2]:
+   //   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    T(1) T(2) T(3)
+//        block   2 : ordering C
+[3]:
+   //   characteristic : 0
+//   number of vars : 2
+//        block   1 : ordering dp
+//                  : names    y(2) y(3)
+//        block   2 : ordering C
+[4]:
+   //   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    x(2) y(1) y(3)
+//        block   2 : ordering C
+[5]:
+   //   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    x(3) y(1) y(2)
+//        block   2 : ordering C
+[1]:
+   //   characteristic : 0
+//   number of vars : 2
+//        block   1 : ordering dp
+//                  : names    y(2) y(3)
+//        block   2 : ordering C
+//   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    x(2) y(1) y(3)
+//        block   2 : ordering C
+// ** redefining e **
+1
+// ** redefining d **
+-1
+// ** `liph` is already global
+4
+[1]:
+   //   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    x y z
+//        block   2 : ordering C
+[2]:
+   //   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    T(1) T(2) T(3)
+//        block   2 : ordering C
+[3]:
+   //   characteristic : 0
+//   number of vars : 2
+//        block   1 : ordering dp
+//                  : names    y(2) y(3)
+//        block   2 : ordering C
+[4]:
+   //   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    x(2) y(1) y(3)
+//        block   2 : ordering C
+[5]:
+   //   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    x(3) y(1) y(2)
+//        block   2 : ordering C
+[1]:
+   //   characteristic : 0
+//   number of vars : 2
+//        block   1 : ordering dp
+//                  : names    y(2) y(3)
+//        block   2 : ordering C
+[2]:
+   //   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    x(2) y(1) y(3)
+//        block   2 : ordering C
+//   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    x(3) y(1) y(2)
+//        block   2 : ordering C
+// ** redefining e **
+1
+// ** redefining d **
+-1
+// ** `liph` is already global
+
+
+> l;                                                               // endlich so wie es sein muss!
+[1]:
+   [1]:
+      //   characteristic : 0                                      // Endringe
+//   number of vars : 2
+//        block   1 : ordering dp
+//                  : names    y(2) y(3)
+//        block   2 : ordering C
+   [2]:
+      //   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    x(2) y(1) y(3)
+//        block   2 : ordering C
+   [3]:
+      //   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    x(3) y(1) y(2)
+//        block   2 : ordering C
+[2]:
+   [1]:                                                             // alle Ringe
+      //   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    x y z
+//        block   2 : ordering C
+   [2]:
+      //   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    T(1) T(2) T(3)
+//        block   2 : ordering C
+   [3]:
+      //   characteristic : 0
+//   number of vars : 2
+//        block   1 : ordering dp
+//                  : names    y(2) y(3)
+//        block   2 : ordering C
+   [4]:
+      //   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    x(2) y(1) y(3)
+//        block   2 : ordering C
+   [5]:
+      //   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    x(3) y(1) y(2)
+//        block   2 : ordering C
+

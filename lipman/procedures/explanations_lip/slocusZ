@@ -1,0 +1,89 @@
+﻿
+ . .1 slocusZ
+.................
+
+Procedure from library `lipmanresolve.lib' (*note lipmanresolve_lib::).
+
+*Usage:*
+     slocusZ(i); i = radical ideal
+     
+*Assume:*
+     The ideal must be radical, for non-radical ideals the output may
+     be wrong ( LIB "normalint.lib"; i=Radical(i); makes i radical).     
+
+*Return:*
+     a list, say s with [1] ideal of the singular locus of i
+     and [2] components of the singular locus of i
+     
+
+*Example:*
+     LIB "lipmanresolve.lib";
+     ring  r1 = integer,(x,y),dp;
+     ideal i = x3-y2+3x+8;
+     list s = slocusZ(i);
+     s;
+     ==> [1]:
+     ==>    _[1]=2
+     ==>    _[2]=y
+     ==>   _[3]=x+1
+     ==>[2]:
+     ==>   [1]:
+     ==>      _[1]=2
+     ==>      _[2]=y
+     ==>      _[3]=x+1
+//--- i is a prime ideal
+     ring r2 = integer,(x,y,z),dp;
+     ideal i1 = y2z-x3-3xz3-8z3;
+     slocusZ(i1);
+     ==> [1]:
+     ==>    _[1]=z
+     ==>    _[2]=y
+     ==>    _[3]=x
+     ==> [2]:
+     ==>    [1]:
+     ==>       _[1]=z
+     ==>       _[2]=y
+     ==>       _[3]=x
+     ideal i2 = yz,xy3-z4+5,z5-5z;
+     slocusZ(i2);
+     ==> [1]:
+     ==>    _[1]=2
+     ==>    _[2]=z+1
+     ==>    _[3]=y
+     ==> [2]:
+     ==>    [1]:
+     ==>       _[1]=2
+     ==>       _[2]=z+1
+     ==>       _[3]=y
+     ideal i3 = myintersect(i1,12);
+     i3;
+     ==> i3[1]=3xyz4+x3yz-y3z2+8yz4
+     ==> i3[2]=3x2y3z3-3xz7+x4y3-xy5z+8xy3z3-x3z4+y2z5-8z7+15xz3+5x3-5y2z+40z3
+     ==> i3[3]=3xz8+x3z5-y2z6+8z8-15xz4-5x3z+5y2z2-40z4
+     slocusZ(i3);
+     ==> [1]:
+     ==>   _[1]=2z
+     ==>   _[2]=y
+     ==>   _[3]=2x
+     ==>   _[4]=z2+z
+     ==>   _[5]=xz+x
+//--- ideal of the singular locus of i3
+     ==> [2]:
+     ==>   [1]:
+     ==>      _[1]=z
+     ==>      _[2]=y
+     ==>      _[3]=x
+     ==>   [2]:
+     ==>      _[1]=2
+     ==>      _[2]=z+1
+     ==>      _[3]=y
+//--- components of the singular locus of i3
+
+    
+   
+    
+* Menu:
+
+See also:
+* slocus::
+

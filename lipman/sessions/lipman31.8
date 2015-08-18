@@ -1,0 +1,433 @@
+proc lipmaneu(ideal i)
+{    
+ //--- assertion: i radical ideal and dim(i)=2
+     i=std(i);
+
+     if(dim(i) != 2)
+     {
+         "WARNING! The input is not of dimension 2!";
+         "The result may be wrong.";
+     }
+
+     def BAS=basering;
+     ideal irad=radical(i);
+
+     if(size(reduce(irad,std(i))) != 0)
+     {
+         "WARNING! The input is not reduced!";
+         "We will continue with the reduced part of input";
+          i=irad;
+     }
+
+     if (size(i) == 0)
+     {  
+         ideal s = 1;
+     }
+
+     else
+     {
+         ideal s = std(radical(slocus(i)));
+     }
+       
+     int e = isnor(i);
+     e;
+     int d = dim(s);
+     d;
+     list nm,isno,issing,bl2;
+
+if (e == 1 && d > -1)
+  //---BAS/i is normal and singular
+     {
+         list b = blowUp2(i,s);
+         int r=size(b);
+         int k;
+         list isno;
+         for (k=1;k<=r;k++)
+         {
+             def Newr1 = b[k];
+             setring Newr1;
+             ideal i = std(Jnew,radical(eD));
+             ideal s = radical(slocus(Jnew));
+             isno[k]=isnor(i);
+
+             if (isnor(i) == 1 && dim(s) == -1)
+             { 
+                nm[k] = Newr1;
+                ideal i = lip;
+                ideal liph = bM;
+                export(lip);
+                export(liph);
+                
+             }
+             
+             else
+             { 
+                e = 0;
+             }
+         }
+     }
+
+
+if (e == 0)
+     {
+//---BAS/i is not normal
+         list n = normal(i); 
+         intvec rw;  
+         int rr=size(n[1]);
+         int kk,in;
+         for (kk=1;kk<=rr;kk++)
+         {                      
+             def Newrk = n[1][kk];                         
+             setring Newrk;
+             map phi = BAS,normap;
+ 
+             if (defined(liph))
+                { ideal normap = phi(liph);}
+                       
+             int homo = homog(norid);
+
+             if(homo == 1)
+                { rw = ringweights(Newrk);}
+
+             list L = substpart(norid,normap,homo,rw);
+             def newrk = L[1];
+             setring newrk;
+             ideal i = std(endid);
+             kill homo,rw;
+
+             if (size(i) == 0)
+                {ideal s = 1; isno[kk] = 1;}
+
+             else
+                { ideal s = std(radical(slocus(i))); isno[kk]=isnor(i);}
+
+             if (dim(s) == -1)
+             {    
+                 issing[kk] = 0;
+                 nm[kk] = newrk;
+                 intvec path = kk;                               //--- "export" fehlt
+                 ideal lip = i;
+                 ideal liph = endphi;
+                 export(lip);
+                 export(liph);
+             }
+                
+             else
+             {
+                 bl2 = blowUp2(i,s);
+                 int r = size(bl2);
+                 int k;
+                 for (k=1;k<=r;k++)
+                 {
+                     def Newr1 = bl2[k];
+                     setring Newr1;
+                     ideal i = std(Jnew,radical(eD));
+                     map phi = BAS,bM;
+
+                     if (defined(endphi))
+                     { ideal liph = phi(endphi);}
+
+                     else
+                     { ideal liph = bM;}
+       
+                     export(liph);
+                     in = isnor(i);
+
+                     if (in == 1)
+                     {  
+                        bl2[k]= Newr1;
+                        ideal lip = i;
+                        module path = [kk,k,ideal(0)];
+                        export(lip);
+                     }
+                     
+                    kill Newr1;
+                 }
+             } 
+
+             kill Newrk,L;
+             setring BAS;
+ 
+         }
+     }
+
+     list result=nm,bl2;
+     return(result);
+};   
+
+
+proc lipman(ideal i)
+{    
+     i=std(i);
+     if(dim(i) != 2)
+     {
+         "WARNING! The input is of dimension 2!";
+         "The result may be wrong.";
+     }
+     
+//--- assertion: i radical ideal
+     def BAS=basering;
+     ideal irad=radical(i);
+     if(size(reduce(irad,std(i))) != 0)
+     {
+         "WARNING! The input is not reduced!";
+         "We will continue with the reduced part of input";
+          i=irad;
+     }
+
+     if (size(i) == 0)
+     {  
+         ideal s = 1;
+     }
+
+     else
+     {
+         ideal s = std(radical(slocus(i)));
+     }
+       
+     int e = isnor(i);
+     e;
+     int d = dim(s);
+     d;
+     list nm;
+
+if (e == 1 && d > -1)
+  //---BAS/i is normal and singular
+     {
+         list b = blowUp2(i,s);
+         int r=size(b);
+         int k;
+         list isno;
+         for (k=1;k<=r;k++)
+         {
+             def Newr1 = b[k];
+             setring Newr1;
+             ideal i = std(Jnew,radical(eD));
+             ideal s = radical(slocus(Jnew));
+
+             isno[k]=isnor(i);
+
+             if (isnor(i) == 1 && dim(s) == -1)
+             { 
+                nm[k] = Newr1;
+                ideal i = lip;
+                ideal liph = bM;
+                export(lip);
+                export(liph);
+                
+             }
+             
+             else
+             { 
+                e = 0;
+             }
+         }
+     }
+
+
+if (e == 0)
+  //---BAS/i is not normal
+     {
+         list n = normal(i); 
+         list isno;
+         export(isno);
+         list issing;
+         export(issing);
+         intvec rw;  
+         int rr=size(n[1]);
+         int kk;
+         for (kk=1;kk<=rr;kk++)
+         {                      
+             def Newrk = n[1][kk];                         
+             setring Newrk;
+             map phi = BAS,normap;
+ 
+             if (defined(liph))
+                { ideal normap = phi(liph);}
+                       
+             int homo = homog(norid);
+
+             if( homo==1 )
+                { rw = ringweights(Newrk);}
+
+             list L = substpart(norid,normap,homo,rw);
+             def newrk = L[1];
+             setring newrk;
+             ideal i = std(endid);
+
+             if (size(i) == 0)
+                {ideal s = 1; isno[kk] = 1;}
+
+             else
+                { ideal s = std(radical(slocus(i)));}
+             s;
+
+             if (dim(s) == -1)
+             {    
+                 issing[kk] = 0;
+                 nm[kk] = newrk;
+                 ideal lip = i;
+                 ideal liph = endphi;
+                 export(lip);
+                 export(liph);
+             }
+                
+             else
+             {
+                 list b = blowUp2(i,s);
+                 int r = size(b);
+                 int k;
+                 list isno;
+                 export(isno);
+                 for (k=1;k<=r;k++)
+                 {
+                     def Newr1 = b[k];
+                     setring Newr1;
+                     ideal i = std(Jnew,radical(eD));
+                     map phi = BAS,bM;
+
+                     if (defined(liph))
+                     { ideal liph = phi(liph);}
+
+                     else
+                     { ideal liph = bM;}
+       
+                     export(liph);
+                     isno[k]= isnor(i);
+
+                     if (isno[k] == 1)
+                     {  
+                        nm[k]= Newr1;
+                        ideal lip = i;
+                        export(lip);
+                     }
+                 }
+             }
+          
+             kill Newrk,homo,L;
+             setring BAS;
+              
+         }
+     }
+
+     return(nm);
+};                                                 
+> ring r=0,(x,y,z,w),dp;
+> ideal i=x2-y2z2,w2+y3;                            //--- Beispiel 5 zum Test lipman und lipmaneu
+> list li=lipman(i);
+0
+1
+s[1]=1
+> li;
+[1]:
+   //   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    T(1) T(2) T(3)
+//        block   2 : ordering C
+> list lin=lipmaneu(i);
+0
+1
+> lin;
+[1]:
+   [1]:
+      //   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    T(1) T(2) T(3)
+//        block   2 : ordering C
+[2]:
+   empty list
+> def r1=lin[1][1];
+> setring r1;
+> lip;
+lip[1]=T(1)^2-1
+> liph;
+liph[1]=-T(1)^3*T(2)^2*T(3)
+liph[2]=-T(1)^2*T(2)^2
+liph[3]=T(3)
+liph[4]=-T(1)^2*T(2)^3
+> path;
+   ? `path` is undefined                  //---so geht es nicht mit "path"
+   
+> proc lipmaneu(ideal i)
+{    
+
+....
+                 intvec path = kk;
+                 export(path);            //--- das hat gefehlt
+....
+
+     list result=nm,bl2;
+     return(result);
+}; 
+// ** redefining lipmaneu **
+> setring r;
+> list lin=lipmaneu(i);
+// ** redefining lin **
+0
+1
+> lin;
+[1]:
+   [1]:
+      //   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    T(1) T(2) T(3)
+//        block   2 : ordering C
+[2]:
+   empty list
+> def r1=lin[1][1];
+// ** redefining r1 **
+> setring r1;
+> lip;
+lip[1]=T(1)^2-1
+> liph;
+liph[1]=-T(1)^3*T(2)^2*T(3)
+liph[2]=-T(1)^2*T(2)^2
+liph[3]=T(3)
+liph[4]=-T(1)^2*T(2)^3
+> path;
+1
+> setring r;
+> ideal i=x3-yz3,y4+x2w2;
+> list lin=lipmaneu(i);
+// ** redefining lin **
+WARNING! The input is not reduced!
+We will continue with the reduced part of input
+// ** i is no standard basis
+0
+1
+// ** Jnew is no standard basis
+// ** Jnew is no standard basis
+// ** Jnew is no standard basis
+// ** redefining newrk **
+// ** redefining path
+> lin;
+[1]:
+   [2]:
+      //   characteristic : 0
+//   number of vars : 2
+//        block   1 : ordering dp
+//                  : names    T(1) T(2)
+//        block   2 : ordering C
+[2]:
+   [1]:
+      //   characteristic : 0
+//   number of vars : 4
+//        block   1 : ordering dp
+//                  : names    x(1) x(4) y(2) y(3)
+//        block   2 : ordering C
+   [2]:
+      //   characteristic : 0
+//   number of vars : 4
+//        block   1 : ordering dp
+//                  : names    x(1) x(3) y(1) y(3)
+//        block   2 : ordering C
+   [3]:
+      //   characteristic : 0
+//   number of vars : 4
+//        block   1 : ordering dp
+//                  : names    x(1) x(2) y(1) y(2)
+//        block   2 : ordering C
+> 

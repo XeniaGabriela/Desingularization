@@ -1,0 +1,58 @@
+                     SINGULAR                                 /
+ A Computer Algebra System for Polynomial Computations       /   version 3-1-2
+                                                           0<
+ by: W. Decker, G.-M. Greuel, G. Pfister, H. Schoenemann     \   Oct 2010
+FB Mathematik der Universitaet, D-67653 Kaiserslautern        \
+> ring r=0,(x,y,z),dp;
+> ring r=0,(x,y,z),lp;
+// ** redefining r **
+> ideal i=y2z+yz2-x3+xz2;
+> ideal Ji=jacob(i),i;
+> Ji=std(Ji);
+> Ji;
+Ji[1]=z4
+Ji[2]=2yz+z2
+Ji[3]=2y3+5y2z+2yz2
+Ji[4]=2xz+y2+2yz
+Ji[5]=3xy2+6xyz+2z3
+Ji[6]=3x2-z2
+> ring r=integer,(x,yz),lp;
+// ** You are using coefficient rings which are not fields.
+// ** Please note that only limited functionality is available
+// ** for these coefficients.
+// ** 
+// ** The following commands are meant to work:
+// ** - basic polynomial arithmetic
+// ** - std
+// ** - syz
+// ** - lift
+// ** - reduce
+// ** redefining r **
+> ring r=integer,(x,y,z),lp;
+// ** redefining r **
+> ideal i=y2z+yz2-x3+xz2;
+> ideal Ji=jacob(i),i;
+> Ji;
+Ji[1]=-3x2+z2
+Ji[2]=2yz+z2
+Ji[3]=2xz+y2+2yz
+Ji[4]=-x3+xz2+y2z+yz2
+> Ji=std(Ji);
+> Ji;
+Ji[1]=37z4
+Ji[2]=2yz+z2
+Ji[3]=yz3+19z4
+Ji[4]=y2z2+14yz3+16z4
+Ji[5]=2y3+5y2z+2yz2
+Ji[6]=y3z+7y2z2+10yz3+8z4
+Ji[7]=y4+y3z-5y2z2-6yz3-4z4
+Ji[8]=2xz+y2+2yz
+Ji[9]=-xz2+y3+2y2z
+Ji[10]=3xy2+6xyz+2z3
+Ji[11]=xy2z+6xyz2-y4-2y3z+2z4
+Ji[12]=-xy3-xy2z+2xyz2+z4
+Ji[13]=-3x2+z2
+Ji[14]=x2z-xy2-2xyz-z3
+Ji[15]=-x2y2-2x2yz+y2z2+yz3
+Ji[16]=-x3+xz2+y2z+yz2
+> 

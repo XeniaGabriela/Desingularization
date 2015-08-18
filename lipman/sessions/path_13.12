@@ -1,0 +1,3066 @@
+...
+proc singid(ideal i)
+{
+  def BAS = basering;
+  ideal result;
+  if (charstr(BAS)=="integer")
+  { result = slocusZ(i);}
+  else
+  { result = slocus(i);}
+  return(result);
+}
+
+proc transversalT(ideal J, list E,list #)
+{
+//----------------------------------------------------------------------------
+// check whether J and each element of the list E meet transversally
+//----------------------------------------------------------------------------
+   def R=basering;
+   if(size(#)>0)
+   {
+     ideal pp=#[1];
+   }
+   int i;
+   ideal T,M;
+   ideal Jstd=std(J);
+   ideal Tstd;
+   int d=nvars(basering)-mydimension(Jstd)+1;   // d=n-dim(V(J) \cap hypersurface)
+   for(i=1;i<=size(E);i++)
+   {
+      if(size(reduce(E[i],Jstd))==0)
+      {
+//--- V(J) is contained in E[i]
+        return(0);
+      }
+      T=J,E[i];
+      Tstd=std(T);
+      d=nvars(basering)-mydimension(Tstd);
+      if(size(interred(reduce(1,Tstd)))!=0)
+      {
+//--- intersection is non-empty
+//!!! abgeklemmt, da es doch in der Praxis vorkommt und korrekt sein kann!!!
+//!!! wenn ueberhaupt dann -1 zurueckgeben!!!
+//         if((d>=4)&&(size(T)>=10)){return(0);}
+         M=minor(jacob(T),d,Tstd)+T;
+         M=std(M);
+         if(interred(reduce(1,M)>0)
+         {
+//--- intersection is not transversal
+           if(size(#)==0)
+           {
+              return(0);
+           }
+           M=std(myradical(M));
+           if(size(reduce(pp,M))>0){return(0);}
+         }
+      }
+   }
+//--- passed all tests
+   return(1);
+}
+
+
+
+// ** redefining S **
+> module pa=[0,1,0];
+> pa;
+pa[1]=gen(2)
+> matrix ma=matrix(pa);
+> ma;
+ma[1,1]=0
+ma[2,1]=1
+> pa=[0,0,1];
+> ma;
+ma[1,1]=0
+ma[2,1]=1
+> matrix ma=matrix(pa);
+// ** redefining ma **
+> ma;
+ma[1,1]=0
+ma[2,1]=0
+ma[3,1]=1
+> proc lipmanresolve(ideal i)
+
+{    
+
+ //--- assertion: i radical ideal and dim(i)=2
+
+   i = std(i);
+
+   int dbg = printlevel - voice + 2;
+
+
+
+   if(dim(i) != 2)
+
+   { "WARNING! The input is not of dimension 2!";
+
+      "The result may be wrong.";}
+
+
+
+   def BAS = basering;
+
+   ideal irad = myradical(i);
+
+  irad;
+
+
+
+   if(size(reduce(irad,std(i))) != 0)
+
+   { "WARNING! The input is not reduced!";
+
+     "We will continue with the reduced part of input";
+
+      i=irad;}
+
+
+
+   list allRings,endRings,E;
+
+   allRings[1] = BAS;
+
+   int e,d,ii;
+
+   module path = [0,0,1]; //---[start,knoten,zweig von knoten]
+
+   export(path);
+
+
+
+ while(ii < size(allRings))
+
+ {
+
+   ii++;
+
+   def S = allRings[ii];
+
+   setring S;
+
+   if (size(i) == 0)
+
+   { ideal s = 1;}
+
+   else
+
+   { ideal s = std(singid(i));}
+
+   e = isnor(i);
+
+   d = mydimension(s);
+
+
+
+   if (e == 1 && d == -1)
+
+   { 
+
+//---S/i is normal and regular
+
+       ideal lip = i;
+
+       if (defined(liph) == 0)
+
+       { ideal liph = maxideal(1);}
+
+       export(lip);
+
+       endRings[size(endRings)+1] = S;
+
+       kill S;
+
+   }
+
+
+
+   if (e == 1 && d > -1)
+
+   {
+
+//---S/i is normal and singular
+
+       list b = blowUp2(i,s);
+
+       int r = size(b);
+
+       int k;
+
+       for (k=1;k<=r;k++)
+
+        {
+
+          def Newr1 = b[k];
+
+          setring Newr1;
+
+          def path = imap(S,path);
+
+          path = path,[-1,ii,k];           //---path=path,[BlowUp,Knoten,Zweig vom Knoten]
+          matrix Path = matrix(path);
+          export(Path);
+
+          allRings[size(allRings)+1] = Newr1;
+
+          ideal is = std(Jnew);
+
+          ideal slis = std(singid(is));
+
+          E[size(E)+1] = eD;
+
+          int tt = transversalT(Jnew,E);
+
+
+
+          if (size(interred(reduce(1,slis)) == 0 && tt == 1)
+
+          { ideal i = Jnew;}
+
+          else
+
+          { ideal i = myintersect(Jnew,myradical(eD));}
+
+
+
+          map phi = S,bM;
+
+          if (defined(liph))
+
+          { ideal liph = phi(liph);}
+
+          else
+
+          { ideal liph = maxideal(1);}
+
+          export(liph);
+
+          kill Newr1,E,tt;
+
+          setring S;
+
+       }
+
+       kill b,k,r,S;
+
+   }
+
+
+
+
+
+   if (e == 0)
+
+   {
+
+//---S/i is not normal
+
+
+
+       if (charstr(S) == "integer")
+
+       {  
+
+          "integer";
+
+          list n = normalZ(i);
+
+          int rr = size(n);
+
+          int kk;
+
+          for (kk=1;kk<=rr;kk++)
+
+          {                      
+
+              def NewrZ = n[kk][1];                         
+
+              setring NewrZ;
+
+              def path = imap(S,path);
+
+              path = path,[1,ii,kk];                   //---path=path,[Normalisierung,Knoten,Zweig vom Knoten]
+              path;
+              matrix Path = matrix(path);
+              export(Path);
+              Path;
+
+              map phi = S,normap;
+
+              if (defined(liph))
+
+              { ideal liph = phi(liph);}
+
+              else
+
+              { ideal liph = normap;}
+
+              ideal i = std(nor);
+
+              export(i);
+
+              allRings[size(allRings)+1] = NewrZ;
+
+           } 
+
+           kill NewrZ;
+
+           setring S;
+
+       }
+
+       else
+
+       {
+
+          if (char(S) == 0)
+
+          { list n = normal(i);}
+
+          else
+
+          { list n = normalP(i,"withRing");}
+
+
+
+          int rr=size(n[1]);
+
+          int kk;
+
+          for (kk=1;kk<=rr;kk++)
+
+          {                      
+
+             def Newrk = n[1][kk];                         
+
+             setring Newrk;
+
+             module path = imap(S,path);
+
+             path = path,[ii,kk,1];
+             path;
+             matrix Path = matrix(path);
+             export(Path);
+             Path;
+
+             map nor = S,normap;
+
+             if (defined(liph))
+
+             { ideal liph = nor(liph);}
+
+             else
+
+             { ideal liph = normap;}
+
+             if (char(S) == 0)
+
+             {          
+
+                int homo = homog(norid);
+
+                intvec rw; 
+
+
+
+                if(homo == 1)
+
+                { rw = ringweights(Newrk);}
+
+
+
+                list L = substpart(norid,normap,homo,rw);
+
+                def newrk = L[1];
+
+                setring newrk;
+
+                allRings[size(allRings)+1] = newrk;
+
+                ideal i = std(endid);
+
+                export(i);
+
+                map phi = Newrk,endphi;
+
+                ideal liph = phi(liph);
+
+                def Path = imap(Newrk,Path);
+
+                export(Path);
+
+                kill homo,rw,phi,newrk;
+
+             }
+
+             else
+
+             { 
+
+                ideal i = std(norid);
+
+                export(i);
+
+                allRings[size(allRings)+1] = Newrk;
+
+             } 
+
+
+
+             export(liph);
+
+             kill Newrk,L;
+
+             setring S;
+
+          }
+
+       }
+
+       kill kk,n,rr;
+
+    }
+
+ }  
+
+ list result = endRings,allRings;
+
+ return(result);
+
+};
+// ** redefining lipmanresolve **
+> list l=lipmanresolve(i);
+// ** redefining l **
+irad[1]=x3-y2
+// ** redefining path
+path[1]=gen(3)
+path[2]=gen(3)+gen(2)+gen(1)
+Path[1,1]=0
+Path[1,2]=1
+Path[2,1]=0
+Path[2,2]=1
+Path[3,1]=1
+Path[3,2]=1
+// ** redefining S **
+> l;
+[1]:
+   [1]:
+      //   characteristic : 0
+//   number of vars : 2
+//        block   1 : ordering dp
+//                  : names    T(1) T(2)
+//        block   2 : ordering C
+[2]:
+   [1]:
+      //   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    x y z
+//        block   2 : ordering C
+   [2]:
+      //   characteristic : 0
+//   number of vars : 2
+//        block   1 : ordering dp
+//                  : names    T(1) T(2)
+//        block   2 : ordering C
+> def r1=l[2][1];
+// ** redefining r1 **
+> setring r1;
+> Path;
+   ? `Path` is undefined
+   ? error occurred in or before STDIN line 7110: `Path;`
+> proc lipmanresolve(ideal i)
+
+{    
+
+ //--- assertion: i radical ideal and dim(i)=2
+
+   i = std(i);
+
+   int dbg = printlevel - voice + 2;
+
+
+
+   if(dim(i) != 2)
+
+   { "WARNING! The input is not of dimension 2!";
+
+      "The result may be wrong.";}
+
+
+
+   def BAS = basering;
+
+   ideal irad = myradical(i);
+
+  irad;
+
+
+
+   if(size(reduce(irad,std(i))) != 0)
+
+   { "WARNING! The input is not reduced!";
+
+     "We will continue with the reduced part of input";
+
+      i=irad;}
+
+
+
+   list allRings,endRings,E;
+
+   allRings[1] = BAS;
+
+   int e,d,ii;
+
+   module path = [0,0,1]; //---[start,knoten,zweig von knoten]
+   matrix Path = matrix(path);
+
+   export(Path);
+
+
+
+ while(ii < size(allRings))
+
+ {
+
+   ii++;
+
+   def S = allRings[ii];
+
+   setring S;
+
+   if (size(i) == 0)
+
+   { ideal s = 1;}
+
+   else
+
+   { ideal s = std(singid(i));}
+
+   e = isnor(i);
+
+   d = mydimension(s);
+
+
+
+   if (e == 1 && d == -1)
+
+   { 
+
+//---S/i is normal and regular
+
+       ideal lip = i;
+
+       if (defined(liph) == 0)
+
+       { ideal liph = maxideal(1);}
+
+       export(lip);
+
+       endRings[size(endRings)+1] = S;
+
+       kill S;
+
+   }
+
+
+
+   if (e == 1 && d > -1)
+
+   {
+
+//---S/i is normal and singular
+
+       list b = blowUp2(i,s);
+
+       int r = size(b);
+
+       int k;
+
+       for (k=1;k<=r;k++)
+
+        {
+
+          def Newr1 = b[k];
+
+          setring Newr1;
+
+          def path = imap(S,path);
+
+          path = path,[-1,ii,k];           //---path=path,[BlowUp,Knoten,Zweig vom Knoten]
+          matrix Path = matrix(path);
+          export(Path);
+
+          allRings[size(allRings)+1] = Newr1;
+
+          ideal is = std(Jnew);
+
+          ideal slis = std(singid(is));
+
+          E[size(E)+1] = eD;
+
+          int tt = transversalT(Jnew,E);
+
+
+
+          if (size(interred(reduce(1,slis)) == 0 && tt == 1)
+
+          { ideal i = Jnew;}
+
+          else
+
+          { ideal i = myintersect(Jnew,myradical(eD));}
+
+
+
+          map phi = S,bM;
+
+          if (defined(liph))
+
+          { ideal liph = phi(liph);}
+
+          else
+
+          { ideal liph = maxideal(1);}
+
+          export(liph);
+
+          kill Newr1,E,tt;
+
+          setring S;
+
+       }
+
+       kill b,k,r,S;
+
+   }
+
+
+
+
+
+   if (e == 0)
+
+   {
+
+//---S/i is not normal
+
+
+
+       if (charstr(S) == "integer")
+
+       {  
+
+          "integer";
+
+          list n = normalZ(i);
+
+          int rr = size(n);
+
+          int kk;
+
+          for (kk=1;kk<=rr;kk++)
+
+          {                      
+
+              def NewrZ = n[kk][1];                         
+
+              setring NewrZ;
+
+              def path = imap(S,path);
+
+              path = path,[1,ii,kk];                   //---path=path,[Normalisierung,Knoten,Zweig vom Knoten]
+              path;
+              matrix Path = matrix(path);
+              export(Path);
+              Path;
+
+              map phi = S,normap;
+
+              if (defined(liph))
+
+              { ideal liph = phi(liph);}
+
+              else
+
+              { ideal liph = normap;}
+
+              ideal i = std(nor);
+
+              export(i);
+
+              allRings[size(allRings)+1] = NewrZ;
+
+           } 
+
+           kill NewrZ;
+
+           setring S;
+
+       }
+
+       else
+
+       {
+
+          if (char(S) == 0)
+
+          { list n = normal(i);}
+
+          else
+
+          { list n = normalP(i,"withRing");}
+
+
+
+          int rr=size(n[1]);
+
+          int kk;
+
+          for (kk=1;kk<=rr;kk++)
+
+          {                      
+
+             def Newrk = n[1][kk];                         
+
+             setring Newrk;
+
+             module path = imap(S,path);
+
+             path = path,[ii,kk,1];
+             path;
+             matrix Path = matrix(path);
+             export(Path);
+             Path;
+
+             map nor = S,normap;
+
+             if (defined(liph))
+
+             { ideal liph = nor(liph);}
+
+             else
+
+             { ideal liph = normap;}
+
+             if (char(S) == 0)
+
+             {          
+
+                int homo = homog(norid);
+
+                intvec rw; 
+
+
+
+                if(homo == 1)
+
+                { rw = ringweights(Newrk);}
+
+
+
+                list L = substpart(norid,normap,homo,rw);
+
+                def newrk = L[1];
+
+                setring newrk;
+
+                allRings[size(allRings)+1] = newrk;
+
+                ideal i = std(endid);
+
+                export(i);
+
+                map phi = Newrk,endphi;
+
+                ideal liph = phi(liph);
+
+                def Path = imap(Newrk,Path);
+
+                export(Path);
+
+                kill homo,rw,phi,newrk;
+
+             }
+
+             else
+
+             { 
+
+                ideal i = std(norid);
+
+                export(i);
+
+                allRings[size(allRings)+1] = Newrk;
+
+             } 
+
+
+
+             export(liph);
+
+             kill Newrk,L;
+
+             setring S;
+
+          }
+
+       }
+
+       kill kk,n,rr;
+
+    }
+
+ }  
+
+ list result = endRings,allRings;
+
+ return(result);
+
+};
+// ** redefining lipmanresolve **
+> list l=lipmanresolve(i);
+// ** redefining l **
+irad[1]=x3-y2
+path[1]=gen(3)
+path[2]=gen(3)+gen(2)+gen(1)
+Path[1,1]=0
+Path[1,2]=1
+Path[2,1]=0
+Path[2,2]=1
+Path[3,1]=1
+Path[3,2]=1
+// ** redefining S **
+> l;
+[1]:
+   [1]:
+      //   characteristic : 0
+//   number of vars : 2
+//        block   1 : ordering dp
+//                  : names    T(1) T(2)
+//        block   2 : ordering C
+[2]:
+   [1]:
+      //   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    x y z
+//        block   2 : ordering C
+   [2]:
+      //   characteristic : 0
+//   number of vars : 2
+//        block   1 : ordering dp
+//                  : names    T(1) T(2)
+//        block   2 : ordering C
+> def r1=l[2][1];
+// ** redefining r1 **
+> setring r1;
+> Path;
+Path[1,1]=0
+Path[2,1]=0
+Path[3,1]=1
+> proc lipmanresolve(ideal i)
+
+"USAGE:   lipmanresolve(i);
+
+@*        i = ideal defining a scheme S = spec(Z[x_1,..,x_n]/i) or a 
+
+@*        variety V k[x_1,..,x_n)/i with k a field of char >= 0
+
+ASSUME:   i = prime ideal of dimension 2 over the integers or a field                               
+
+RETURN:   list of rings, [1] the charts of the regular model of S or V, and
+
+@*        [2] all rings occurring in the computation
+
+EXAMPLE:  example lipmanresolve; shows an example"
+
+{    
+
+//----------------------------------------------------------------------------
+
+// Initialization and sanity checks
+
+//----------------------------------------------------------------------------
+
+   
+
+ //--- assertion: i radical ideal and dim(i)=2
+
+   i = std(i);
+
+   int dbg = printlevel - voice + 2;
+
+
+
+   if(mydimension(i) != 2)
+
+   { "WARNING! The input is not of dimension 2!";
+
+      "The result may be wrong.";}
+
+
+
+   def BAS = basering;
+
+   ideal irad = myradical(i);
+
+
+
+   if(size(reduce(irad,std(i))) != 0)
+
+   { "WARNING! The input is not reduced!";
+
+     "We will continue with the reduced part of input";
+
+      i=irad;}
+
+
+
+   list allRings,endRings,E;
+
+   allRings[1] = BAS;
+
+   int e,d,ii;
+
+   module path = [0,0,1]; 
+//---path = [start, vertex, branch of vertex]
+   matrix Path = matrix(path);
+
+   export(Path);
+
+
+
+ while(ii < size(allRings))
+
+ {
+
+//--- normalizations and blow-ups until we have a regular model
+
+   ii++;
+
+   def S = allRings[ii];
+
+   setring S;
+
+   if (size(i) == 0)
+
+   { ideal s = 1;}
+
+   else
+
+   { ideal s = std(singid(i));}
+
+   e = isnor(i);
+
+   d = mydimension(s);
+
+
+
+   if (e == 1 && d == -1)
+
+   { 
+
+//---S/i is normal and regular
+
+       ideal lip = i;
+
+       if (defined(liph) == 0)
+
+       { ideal liph = maxideal(1);}
+
+       export(lip);
+
+       endRings[size(endRings)+1] = S;
+
+     //---collecting all regular charts
+
+       kill S;
+
+   }
+
+
+
+   if (e == 1 && d > -1)
+
+   {
+
+//---S/i is normal and singular
+
+       list b = blowUp2(i,s);
+
+       int r = size(b);
+
+       int k;
+
+       for (k=1;k<=r;k++)
+
+       {
+
+          def Newr1 = b[k];
+
+          setring Newr1;
+
+          def path = imap(S,path);
+
+          path = path,[-1,ii,k];           
+      //---path=path,[blow up,vertex,branch of vertex]
+          matrix Path = matrix(path);
+          export(Path);
+
+          allRings[size(allRings)+1] = Newr1;
+
+          ideal is = std(Jnew);
+
+          ideal slis = std(singid(is));
+
+          E[size(E)+1] = eD;
+
+          int tt = transversalT(Jnew,E);
+
+
+
+          if (size(interred(reduce(1,slis)) == 0 && tt == 1)
+
+          { ideal i = Jnew;}
+
+      //---intersection of Jnew and exceptional divisors ist transversal
+
+      //--- we can continue with Jnew
+
+          else
+
+          { ideal i = myintersect(Jnew,myradical(eD));}
+
+
+
+          map phi = S,bM;
+
+          if (defined(liph))
+
+          { ideal liph = phi(liph);}
+
+          else
+
+          { ideal liph = maxideal(1);}
+
+          export(liph);
+
+          kill Newr1,E,tt;
+
+          setring S;
+
+       }
+
+
+
+       kill b,k,r,S;
+
+   }
+
+
+
+
+
+   if (e == 0)
+
+   {
+
+//---S/i is not normal
+
+
+
+       if (charstr(S) == "integer")
+
+       {  
+
+          "integer";
+
+          list n = normalZ(i);
+
+          int rr = size(n);
+
+          int kk;
+
+          for (kk=1;kk<=rr;kk++)
+
+          {                      
+
+             def NewrZ = n[kk][1];                         
+
+             setring NewrZ;
+
+             def path = imap(S,path);
+
+             path = path,[1,ii,kk];                   
+          //---path = path,[normalization, vertex, branch of vertex]
+             matrix Path = matrix(path);
+             export(Path);
+
+             map phi = S,normap;
+
+             if (defined(liph))
+
+             { ideal liph = phi(liph);}
+
+             else
+
+             { ideal liph = normap;}
+
+             ideal i = std(nor);
+
+             allRings[size(allRings)+1] = NewrZ;
+
+          } 
+
+          kill NewrZ;
+
+          setring S;
+
+       }
+
+       else
+
+       {
+
+    //---normalization over fields
+
+          if (char(S) == 0)
+
+          { list n = normal(i);}
+
+          else
+
+          { list n = normalP(i,"withRing");}
+
+
+
+          int rr=size(n[1]);
+
+          int kk;
+
+          for (kk=1;kk<=rr;kk++)
+
+          {                      
+
+             def Newrk = n[1][kk];                         
+
+             setring Newrk;
+
+             def path = imap(S,path);
+
+             path = path,[1,ii,kk];             
+          //---path = path,[normalization, vertex, branch of vertex]
+             matrix Path = matrix(path);
+             export(Path);
+
+             map nor = S,normap;
+
+             if (defined(liph))
+
+             { ideal liph = nor(liph);}
+
+             else
+
+             { ideal liph = normap;}
+
+
+
+             if (char(S) == 0)
+
+             {  
+
+          //---eliminate needless variables from the normalized ring        
+
+                int homo = homog(norid);
+
+                intvec rw; 
+
+
+
+                if(homo == 1)
+
+                { rw = ringweights(Newrk);}
+
+
+
+                list L = substpart(norid,normap,homo,rw);
+
+                def newrk = L[1];
+
+                setring newrk;
+
+                allRings[size(allRings)+1] = newrk;
+
+                ideal i = std(endid);
+
+                export(i);
+
+                map phi = Newrk,endphi;
+
+                ideal liph = phi(liph);
+
+                def path = imap(Newrk,path);
+
+                export(path);
+
+                kill homo,rw,phi,newrk;
+
+             }
+
+             else
+
+             { 
+
+         //---elimination of variables already in "normalP"
+
+                ideal i = std(norid);
+
+                allRings[size(allRings)+1] = Newrk;
+
+             } 
+
+
+
+             export(liph);
+
+             kill Newrk,L;
+
+             setring S;
+
+          }
+
+       }
+
+       kill kk,n,rr;
+
+    }
+
+ }  
+
+ 
+
+ list result = endRings,allRings;
+
+ return(result);
+
+};
+// ** redefining lipmanresolve **
+> ideal i=x2+y3z3+y2z5; 
+// ** redefining i **
+> list l=lipmanresolve(i);
+// ** redefining l **
+// ** redefining Path
+// ** redefining S **
+   ? 0-th minor, matrix is 1x2
+   ? error occurred in or before sing.lib::slocusEqi line 419: `  i        = i+minor(jacob(i),cod);`
+   ? leaving sing.lib::slocusEqi
+   skipping text from `)` error at token `)`
+   ? leaving sing.lib::slocus
+   ? leaving ::singid
+   ? leaving ::lipmanresolve
+> setring r;
+> ideal i=x2+y3z3+y2z5; 
+// ** redefining i **
+> list l=lipmanresolve(i);
+// ** redefining l **
+// ** redefining Path
+// ** redefining S **
+   ? 0-th minor, matrix is 1x2
+   ? error occurred in or before sing.lib::slocusEqi line 419: `  i        = i+minor(jacob(i),cod);`
+   ? leaving sing.lib::slocusEqi
+   skipping text from `)` error at token `)`
+   ? leaving sing.lib::slocus
+   ? leaving ::singid
+   ? leaving ::lipmanresolve
+> ideal I=x3-y2;
+> list l=lipmanresolve(i);
+// ** redefining l **
+// ** redefining Path
+// ** redefining S **
+   ? 0-th minor, matrix is 1x2
+   ? error occurred in or before sing.lib::slocusEqi line 419: `  i        = i+minor(jacob(i),cod);`
+   ? leaving sing.lib::slocusEqi
+   skipping text from `)` error at token `)`
+   ? leaving sing.lib::slocus
+   ? leaving ::singid
+   ? leaving ::lipmanresolve
+> list l=lipmanresolve(I);
+// ** redefining l **
+// ** redefining Path
+// ** redefining S **
+> l;
+[1]:
+   [1]:
+      //   characteristic : 0
+//   number of vars : 2
+//        block   1 : ordering dp
+//                  : names    T(1) T(2)
+//        block   2 : ordering C
+[2]:
+   [1]:
+      //   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    x y z
+//        block   2 : ordering C
+   [2]:
+      //   characteristic : 0
+//   number of vars : 2
+//        block   1 : ordering dp
+//                  : names    T(1) T(2)
+//        block   2 : ordering C
+> i;
+i[1]=y2z5+y3z3+x2
+> isnor(i);
+0
+> list n=normal(i);
+
+// 'normal' created a list, say nor, of two elements.
+// To see the list type
+      nor;
+
+// * nor[1] is a list of 1 ring(s).
+// To access the i-th ring nor[1][i], give it a name, say Ri, and type
+     def R1 = nor[1][1]; setring R1; norid; normap;
+// For the other rings type first (if R is the name of your base ring)
+     setring R;
+// and then continue as for R1.
+// Ri/norid is the affine algebra of the normalization of R/P_i where
+// P_i is the i-th component of a decomposition of the input ideal id
+// and normap the normalization map from R to Ri/norid.
+
+// * nor[2] is a list of 1 ideal(s). Let ci be the last generator
+// of the ideal nor[2][i]. Then the integral closure of R/P_i is
+// generated as R-submodule of the total ring of fractions by
+// 1/ci * nor[2][i].
+> n;
+[1]:
+   [1]:
+      //   characteristic : 0
+//   number of vars : 4
+//        block   1 : ordering dp
+//                  : names    T(1)
+//        block   2 : ordering dp
+//                  : names    x y z
+//        block   3 : ordering C
+[2]:
+   [1]:
+      _[1]=yz4+y2z2
+      _[2]=x
+> singid(i);
+_[1]=y2z5+y3z3+x2
+_[2]=5y2z4+3y3z2
+_[3]=2yz5+3y2z3
+_[4]=2x
+> std(singid(i));
+_[1]=x
+_[2]=2yz5+3y2z3
+_[3]=5y2z4+3y3z2
+_[4]=y3z3
+_[5]=y4z2
+> def Newrk=n[1][1];
+> setring Newrk;
+> norid;
+norid[1]=T(1)*y*z+x
+norid[2]=-T(1)*x+y*z^4+y^2*z^2
+norid[3]=T(1)^2+z^3+y*z
+norid[4]=y^2*z^5+y^3*z^3+x^2
+> int homo=homog(norid);
+> intvec rw;
+> list L=substpart(norid,normap,homo,rw);
+> L;
+[1]:
+   //   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    T(1) T(2) T(3)
+//        block   2 : ordering C
+> def newrk=L[1];
+> setring newrk;
+> ideal i=endid;
+> i;
+i[1]=T(2)*T(3)^4+T(1)^2*T(2)*T(3)+T(2)^2*T(3)^2
+i[2]=T(3)^3+T(1)^2+T(2)*T(3)
+i[3]=T(2)^2*T(3)^5+T(1)^2*T(2)^2*T(3)^2+T(2)^3*T(3)^3
+> ideal s=singid(i);
+> s;
+s[1]=T(2)*T(3)^4+T(1)^2*T(2)*T(3)+T(2)^2*T(3)^2
+s[2]=T(3)^3+T(1)^2+T(2)*T(3)
+s[3]=T(2)^2*T(3)^5+T(1)^2*T(2)^2*T(3)^2+T(2)^3*T(3)^3
+s[4]=5*T(2)^2*T(3)^4+2*T(1)^2*T(2)^2*T(3)+3*T(2)^3*T(3)^2
+s[5]=2*T(2)*T(3)^5+2*T(1)^2*T(2)*T(3)^2+3*T(2)^2*T(3)^3
+s[6]=2*T(1)*T(2)^2*T(3)^2
+s[7]=3*T(3)^2+T(2)
+s[8]=T(3)
+s[9]=2*T(1)
+s[10]=4*T(2)*T(3)^3+T(1)^2*T(2)+2*T(2)^2*T(3)
+s[11]=T(3)^4+T(1)^2*T(3)+2*T(2)*T(3)^2
+s[12]=2*T(1)*T(2)*T(3)
+> s=std(singid(i));
+> s;
+s[1]=T(3)
+s[2]=T(2)
+s[3]=T(1)
+> isnor(i);
+// ** i is no standard basis
+1
+> mydimension(s);
+0
+> list b = blowUp2(i,s);
+> b;
+[1]:
+   //   characteristic : 0
+//   number of vars : 2
+//        block   1 : ordering dp
+//                  : names    y(2) y(3)
+//        block   2 : ordering C
+[2]:
+   //   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    x(2) y(1) y(3)
+//        block   2 : ordering C
+[3]:
+   //   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    x(3) y(1) y(2)
+//        block   2 : ordering C
+> int r = size(b);
+   ? identifier `r` in use
+   ? error occurred in or before STDIN line 8600: `int r = size(b);`
+   ? wrong type declaration. type 'help int;'
+> int rr = size(b);
+> def Newr1 = b[1];
+> setring Newr1;
+> Jnew;
+Jnew[1]=0
+> eD;
+eD[1]=y(3)^2+y(2)
+> ideal is = std(Jnew);
+> singid(is);
+   ? 0-th minor, matrix is 1x2
+   ? error occurred in or before sing.lib::slocusEqi line 419: `  i        = i+minor(jacob(i),cod);`
+   ? leaving sing.lib::slocusEqi
+   skipping text from `)` error at token `)`
+   ? leaving sing.lib::slocus
+   ? leaving ::singid
+> if(i==0){i=1};
+   ? `i` is not defined
+   ? error occurred in or before STDIN line 8608: `if(i==0){i=1};`
+> if(Jnew==0){singid=ideal(1),};
+   ? error occurred in or before STDIN line 8609: ``
+   ? wrong type declaration. type 'help ideal;'
+   ? last reserved name was `ideal`
+ error at token `;`
+> if(Jnew==0){ideal singid=ideal(1);};
+   ? identifier `singid` in use
+   ? error occurred in or before STDIN line 8609: `ideal singid=ideal(1);`
+   ? wrong type declaration. type 'help ideal;'
+> if(Jnew==0){ideal sing=ideal(1);};
+> sing;
+sing[1]=1
+> proc singid(ideal i)
+
+"Internal procedure - no help and no example available"
+
+{
+
+  def BAS = basering;
+
+  ideal result;
+  if (i[1] == 0)
+  { result = ideal(1);}
+  else
+  {
+
+     if (charstr(BAS)=="integer")
+
+     { result = slocusZ(i);}
+
+     else
+
+     { result = slocus(i);}
+
+     return(result);
+  }
+
+};
+// ** redefining singid **
+> setring r;
+> i;
+i[1]=y2z5+y3z3+x2
+> list l=lipmanresolve(i);
+// ** redefining l **
+// ** redefining Path
+// ** redefining S **
+   ? std(`nothing`) failed
+   ? expected std(`ideal`)
+   ? expected std(`module`)
+   ? error occurred in or before ::lipmanresolve line 137: `;return();`
+   ? leaving ::lipmanresolve
+   skipping text from `;` error at token `)`
+> list n=normal(i);
+// ** redefining n **
+
+// 'normal' created a list, say nor, of two elements.
+// To see the list type
+      nor;
+
+// * nor[1] is a list of 1 ring(s).
+// To access the i-th ring nor[1][i], give it a name, say Ri, and type
+     def R1 = nor[1][1]; setring R1; norid; normap;
+// For the other rings type first (if R is the name of your base ring)
+     setring R;
+// and then continue as for R1.
+// Ri/norid is the affine algebra of the normalization of R/P_i where
+// P_i is the i-th component of a decomposition of the input ideal id
+// and normap the normalization map from R to Ri/norid.
+
+// * nor[2] is a list of 1 ideal(s). Let ci be the last generator
+// of the ideal nor[2][i]. Then the integral closure of R/P_i is
+// generated as R-submodule of the total ring of fractions by
+// 1/ci * nor[2][i].
+> n;
+[1]:
+   [1]:
+      //   characteristic : 0
+//   number of vars : 4
+//        block   1 : ordering dp
+//                  : names    T(1)
+//        block   2 : ordering dp
+//                  : names    x y z
+//        block   3 : ordering C
+[2]:
+   [1]:
+      _[1]=yz4+y2z2
+      _[2]=x
+> setring newrk;
+;
+> setring r;
+> singid(i);
+_[1]=y2z5+y3z3+x2
+_[2]=5y2z4+3y3z2
+_[3]=2yz5+3y2z3
+_[4]=2x
+> std(singid(i));
+_[1]=x
+_[2]=2yz5+3y2z3
+_[3]=5y2z4+3y3z2
+_[4]=y3z3
+_[5]=y4z2
+> setring newrk;
+> i;
+i[1]=T(2)*T(3)^4+T(1)^2*T(2)*T(3)+T(2)^2*T(3)^2
+i[2]=T(3)^3+T(1)^2+T(2)*T(3)
+i[3]=T(2)^2*T(3)^5+T(1)^2*T(2)^2*T(3)^2+T(2)^3*T(3)^3
+> singid(i);
+_[1]=T(2)*T(3)^4+T(1)^2*T(2)*T(3)+T(2)^2*T(3)^2
+_[2]=T(3)^3+T(1)^2+T(2)*T(3)
+_[3]=T(2)^2*T(3)^5+T(1)^2*T(2)^2*T(3)^2+T(2)^3*T(3)^3
+_[4]=5*T(2)^2*T(3)^4+2*T(1)^2*T(2)^2*T(3)+3*T(2)^3*T(3)^2
+_[5]=2*T(2)*T(3)^5+2*T(1)^2*T(2)*T(3)^2+3*T(2)^2*T(3)^3
+_[6]=2*T(1)*T(2)^2*T(3)^2
+_[7]=3*T(3)^2+T(2)
+_[8]=T(3)
+_[9]=2*T(1)
+_[10]=4*T(2)*T(3)^3+T(1)^2*T(2)+2*T(2)^2*T(3)
+_[11]=T(3)^4+T(1)^2*T(3)+2*T(2)*T(3)^2
+_[12]=2*T(1)*T(2)*T(3)
+> std(singid(i));
+_[1]=T(3)
+_[2]=T(2)
+_[3]=T(1)
+> b;
+[1]:
+   //   characteristic : 0
+//   number of vars : 2
+//        block   1 : ordering dp
+//                  : names    y(2) y(3)
+//        block   2 : ordering C
+[2]:
+   //   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    x(2) y(1) y(3)
+//        block   2 : ordering C
+[3]:
+   //   characteristic : 0
+//   number of vars : 3
+//        block   1 : ordering dp
+//                  : names    x(3) y(1) y(2)
+//        block   2 : ordering C
+> setring r1;
+> Jnew;
+   ? `Jnew` is undefined
+   ? error occurred in or before STDIN line 8675: `Jnew;`
+> def rb1=b[1];
+> setring rb1;
+> Jnew;
+Jnew[1]=0
+> eD;
+eD[1]=y(3)^2+y(2)
+> proc singid(ideal i)
+
+{
+
+  def BAS = basering;
+
+  ideal result;
+  if (i[1] == 0)
+  { result = ideal(1);}
+  else
+  {
+
+     if (charstr(BAS)=="integer")
+
+     { result = slocusZ(i);}
+
+     else
+
+     { result = slocus(i);}
+  }
+  return(result);
+
+};
+// ** redefining singid **
+> ideal slis=std(singid(Jnew));
+> slis;
+slis[1]=1
+> list E;
+> E[size(E)+1] = eD;
+> int tt = transversalT(Jnew,E);
+   ? error occurred in or before ::transversalT line 41: `//--- intersection is not transversal`
+   ? last reserved name was `reduce`
+   ? leaving ::transversalT
+   skipping text from ` `   ? leaving ::transversalT
+ error at token `)`
+> E;
+[1]:
+   _[1]=y(3)^2+y(2)
+> proc transversalT(ideal J, list E,list #)
+
+{
+
+//----------------------------------------------------------------------------
+
+// check whether J and each element of the list E meet transversally
+
+//----------------------------------------------------------------------------
+
+   def R=basering;
+
+   if(size(#)>0)
+
+   {
+
+     ideal pp=#[1];
+
+   }
+
+   int i;
+
+   ideal T,M;
+
+   ideal Jstd=std(J);
+
+   ideal Tstd;
+
+   int d=nvars(basering)-mydimension(Jstd)+1;   // d=n-dim(V(J) \cap hypersurface)
+
+   for(i=1;i<=size(E);i++)
+
+   {
+
+      if(size(reduce(E[i],Jstd))==0)
+
+      {
+
+//--- V(J) is contained in E[i]
+
+        return(0);
+
+      }
+
+      T=J,E[i];
+
+      Tstd=std(T);
+
+      d=nvars(basering)-mydimension(Tstd);
+
+      if(size(interred(reduce(1,Tstd)))!=0)
+
+      {
+
+//--- intersection is non-empty
+
+//!!! abgeklemmt, da es doch in der Praxis vorkommt und korrekt sein kann!!!
+
+//!!! wenn ueberhaupt dann -1 zurueckgeben!!!
+
+//         if((d>=4)&&(size(T)>=10)){return(0);}
+
+         M=minor(jacob(T),d,Tstd)+T;
+
+         M=std(M);
+         poly e=1;
+
+         if(interred(reduce(e,M)>0)
+
+         {
+
+//--- intersection is not transversal
+
+           if(size(#)==0)
+
+           {
+
+              return(0);
+
+           }
+
+           M=std(myradical(M));
+
+           if(size(reduce(pp,M))>0){return(0);}
+
+         }
+
+      }
+
+   }
+
+//--- passed all tests
+
+   return(1);
+
+};
+// ** redefining transversalT **
+> int tt = transversalT(Jnew,E);
+// ** redefining tt **
+   ? error occurred in or before ::transversalT line 83: ``
+   ? last reserved name was `reduce`
+   ? leaving ::transversalT
+   skipping text from ` `   ? leaving ::transversalT
+ error at token `)`
+> e;
+   ? `pol` is undefined
+   ? error occurred in or before STDIN line 8919: `e;`
+> poly e=1;
+> e;
+1
+> reduce(e,eD);
+1
+> interred(reduce(e,eD));
+_[1]=1
+> proc transversalT(ideal J, list E,list #)
+
+{
+
+//----------------------------------------------------------------------------
+
+// check whether J and each element of the list E meet transversally
+
+//----------------------------------------------------------------------------
+
+   def R=basering;
+
+   if(size(#)>0)
+
+   {
+
+     ideal pp=#[1];
+
+   }
+
+   int i;
+
+   ideal T,M;
+
+   ideal Jstd=std(J);
+
+   ideal Tstd;
+
+   int d=nvars(basering)-mydimension(Jstd)+1;   // d=n-dim(V(J) \cap hypersurface)
+
+   for(i=1;i<=size(E);i++)
+
+   {
+
+      if(size(reduce(E[i],Jstd))==0)
+
+      {
+
+//--- V(J) is contained in E[i]
+
+        return(0);
+
+      }
+
+      T=J,E[i];
+
+      Tstd=std(T);
+
+      d=nvars(basering)-mydimension(Tstd);
+
+      if(size(interred(reduce(1,Tstd)))!=0)
+
+      {
+
+//--- intersection is non-empty
+
+//!!! abgeklemmt, da es doch in der Praxis vorkommt und korrekt sein kann!!!
+
+//!!! wenn ueberhaupt dann -1 zurueckgeben!!!
+
+//         if((d>=4)&&(size(T)>=10)){return(0);}
+
+         M=minor(jacob(T),d,Tstd)+T;
+
+         M=std(M);
+         poly e=1;
+
+         if(size(interred(reduce(e,M)))>0)
+
+         {
+
+//--- intersection is not transversal
+
+           if(size(#)==0)
+
+           {
+
+              return(0);
+
+           }
+
+           M=std(myradical(M));
+
+           if(size(reduce(pp,M))>0){return(0);}
+
+         }
+
+      }
+
+   }
+
+//--- passed all tests
+
+   return(1);
+
+};
+// ** redefining transversalT **
+> int tt = transversalT(Jnew,E);
+// ** redefining tt **
+> tt;
+1
+> ideal ggr=x2;
+   ? `x2` is undefined
+   ? error occurred in or before STDIN line 9114: `ideal ggr=x2;`
+   ? expected ideal-expression. type 'help ideal;'
+> reduce(1,eD);
+1
+> setring r;
+> i;
+i[1]=y2z5+y3z3+x2
+> list l=lipmanresolve(i);
+// ** redefining l **
+// ** redefining Path
+// ** redefining S **
+   ? error occurred in or before ::lipmanresolve line 147: `          { ideal i = Jnew;}`
+   ? last reserved name was `reduce`
+   ? leaving ::lipmanresolve
+   skipping text from ` `   ? leaving ::lipmanresolve
+ error at token `)`
+> proc lipmanresolve(ideal i)
+
+"USAGE:   lipmanresolve(i);
+
+@*        i = ideal defining a scheme S = spec(Z[x_1,..,x_n]/i) or a 
+
+@*        variety V k[x_1,..,x_n)/i with k a field of char >= 0
+
+ASSUME:   i = prime ideal of dimension 2 over the integers or a field                               
+
+RETURN:   list of rings, [1] the charts of the regular model of S or V, and
+
+@*        [2] all rings occurring in the computation
+
+EXAMPLE:  example lipmanresolve; shows an example"
+
+{    
+
+//----------------------------------------------------------------------------
+
+// Initialization and sanity checks
+
+//----------------------------------------------------------------------------
+
+   
+
+ //--- assertion: i radical ideal and dim(i)=2
+
+   i = std(i);
+
+   int dbg = printlevel - voice + 2;
+
+
+
+   if(mydimension(i) != 2)
+
+   { "WARNING! The input is not of dimension 2!";
+
+      "The result may be wrong.";}
+
+
+
+   def BAS = basering;
+
+   ideal irad = myradical(i);
+
+
+
+   if(size(reduce(irad,std(i))) != 0)
+
+   { "WARNING! The input is not reduced!";
+
+     "We will continue with the reduced part of input";
+
+      i=irad;}
+
+
+
+   list allRings,endRings,E;
+
+   allRings[1] = BAS;
+
+   int e,d,ii;
+
+   module path = [0,0,1]; 
+//---path = [start, vertex, branch of vertex]
+   matrix Path = matrix(path);
+
+   export(Path);
+
+
+
+ while(ii < size(allRings))
+
+ {
+
+//--- normalizations and blow-ups until we have a regular model
+
+   ii++;
+
+   def S = allRings[ii];
+
+   setring S;
+
+   if (size(i) == 0)
+
+   { ideal s = 1;}
+
+   else
+
+   { ideal s = std(singid(i));}
+
+   e = isnor(i);
+
+   d = mydimension(s);
+
+
+
+   if (e == 1 && d == -1)
+
+   { 
+
+//---S/i is normal and regular
+
+       ideal lip = i;
+
+       if (defined(liph) == 0)
+
+       { ideal liph = maxideal(1);}
+
+       export(lip);
+
+       endRings[size(endRings)+1] = S;
+
+     //---collecting all regular charts
+
+       kill S;
+
+   }
+
+
+
+   if (e == 1 && d > -1)
+
+   {
+
+//---S/i is normal and singular
+
+       list b = blowUp2(i,s);
+
+       int r = size(b);
+
+       int k;
+
+       for (k=1;k<=r;k++)
+
+       {
+
+          def Newr1 = b[k];
+
+          setring Newr1;
+
+          def path = imap(S,path);
+
+          path = path,[-1,ii,k];           
+      //---path=path,[blow up,vertex,branch of vertex]
+          matrix Path = matrix(path);
+          export(Path);
+
+          allRings[size(allRings)+1] = Newr1;
+
+          ideal is = std(Jnew);
+
+          ideal slis = std(singid(is));
+
+          E[size(E)+1] = eD;
+
+          int tt = transversalT(Jnew,E);
+
+
+
+          if (tt == 1)
+
+          { ideal i = Jnew;}
+
+      //---intersection of Jnew and exceptional divisors ist transversal
+
+      //--- we can continue with Jnew
+
+          else
+
+          { ideal i = myintersect(Jnew,myradical(eD));}
+
+
+
+          map phi = S,bM;
+
+          if (defined(liph))
+
+          { ideal liph = phi(liph);}
+
+          else
+
+          { ideal liph = maxideal(1);}
+
+          export(liph);
+
+          kill Newr1,E,tt;
+
+          setring S;
+
+       }
+
+
+
+       kill b,k,r,S;
+
+   }
+
+
+
+
+
+   if (e == 0)
+
+   {
+
+//---S/i is not normal
+
+
+
+       if (charstr(S) == "integer")
+
+       {  
+
+          "integer";
+
+          list n = normalZ(i);
+
+          int rr = size(n);
+
+          int kk;
+
+          for (kk=1;kk<=rr;kk++)
+
+          {                      
+
+             def NewrZ = n[kk][1];                         
+
+             setring NewrZ;
+
+             def path = imap(S,path);
+
+             path = path,[1,ii,kk];                   
+          //---path = path,[normalization, vertex, branch of vertex]
+             matrix Path = matrix(path);
+             export(Path);
+
+             map phi = S,normap;
+
+             if (defined(liph))
+
+             { ideal liph = phi(liph);}
+
+             else
+
+             { ideal liph = normap;}
+
+             ideal i = std(nor);
+
+             allRings[size(allRings)+1] = NewrZ;
+
+          } 
+
+          kill NewrZ;
+
+          setring S;
+
+       }
+
+       else
+
+       {
+
+    //---normalization over fields
+
+          if (char(S) == 0)
+
+          { list n = normal(i);}
+
+          else
+
+          { list n = normalP(i,"withRing");}
+
+
+
+          int rr=size(n[1]);
+
+          int kk;
+
+          for (kk=1;kk<=rr;kk++)
+
+          {                      
+
+             def Newrk = n[1][kk];                         
+
+             setring Newrk;
+
+             def path = imap(S,path);
+
+             path = path,[1,ii,kk];             
+          //---path = path,[normalization, vertex, branch of vertex]
+             matrix Path = matrix(path);
+             export(Path);
+
+             map nor = S,normap;
+
+             if (defined(liph))
+
+             { ideal liph = nor(liph);}
+
+             else
+
+             { ideal liph = normap;}
+
+
+
+             if (char(S) == 0)
+
+             {  
+
+          //---eliminate needless variables from the normalized ring        
+
+                int homo = homog(norid);
+
+                intvec rw; 
+
+
+
+                if(homo == 1)
+
+                { rw = ringweights(Newrk);}
+
+
+
+                list L = substpart(norid,normap,homo,rw);
+
+                def newrk = L[1];
+
+                setring newrk;
+
+                allRings[size(allRings)+1] = newrk;
+
+                ideal i = std(endid);
+
+                export(i);
+
+                map phi = Newrk,endphi;
+
+                ideal liph = phi(liph);
+
+                def Path = imap(Newrk,Path);
+
+                export(Path);
+
+                kill homo,rw,phi,newrk;
+
+             }
+
+             else
+
+             { 
+
+         //---elimination of variables already in "normalP"
+
+                ideal i = std(norid);
+
+                allRings[size(allRings)+1] = Newrk;
+
+             } 
+
+
+
+             export(liph);
+
+             kill Newrk,L;
+
+             setring S;
+
+          }
+
+       }
+
+       kill kk,n,rr;
+
+    }
+
+ }  
+
+ 
+
+ list result = endRings,allRings;
+
+ return(result);
+
+};
+// ** redefining lipmanresolve **
+> setring r;
+> i;
+i[1]=y2z5+y3z3+x2
+> list l=lipmanresolve(i);
+// ** redefining l **
+// ** redefining Path
+// ** redefining S **
+   ? identifier path not found in S
+   ? error occurred in or before ::lipmanresolve line 126: `          def path = imap(S,path);`
+   ? leaving ::lipmanresolve
+   skipping text from `;` error at token `)`
+> proc lipmanresolve(ideal i)
+
+"USAGE:   lipmanresolve(i);
+
+@*        i = ideal defining a scheme S = spec(Z[x_1,..,x_n]/i) or a 
+
+@*        variety V k[x_1,..,x_n)/i with k a field of char >= 0
+
+ASSUME:   i = prime ideal of dimension 2 over the integers or a field                               
+
+RETURN:   list of rings, [1] the charts of the regular model of S or V, and
+
+@*        [2] all rings occurring in the computation
+
+EXAMPLE:  example lipmanresolve; shows an example"
+
+{    
+
+//----------------------------------------------------------------------------
+
+// Initialization and sanity checks
+
+//----------------------------------------------------------------------------
+
+   
+
+ //--- assertion: i radical ideal and dim(i)=2
+
+   i = std(i);
+
+   int dbg = printlevel - voice + 2;
+
+
+
+   if(mydimension(i) != 2)
+
+   { "WARNING! The input is not of dimension 2!";
+
+      "The result may be wrong.";}
+
+
+
+   def BAS = basering;
+
+   ideal irad = myradical(i);
+
+
+
+   if(size(reduce(irad,std(i))) != 0)
+
+   { "WARNING! The input is not reduced!";
+
+     "We will continue with the reduced part of input";
+
+      i=irad;}
+
+
+
+   list allRings,endRings,E;
+
+   allRings[1] = BAS;
+
+   int e,d,ii;
+
+   module path = [0,0,1]; 
+//---path = [start, vertex, branch of vertex]
+   matrix Path = matrix(path);
+
+   export(path,Path);
+
+
+
+ while(ii < size(allRings))
+
+ {
+
+//--- normalizations and blow-ups until we have a regular model
+
+   ii++;
+
+   def S = allRings[ii];
+
+   setring S;
+
+   if (size(i) == 0)
+
+   { ideal s = 1;}
+
+   else
+
+   { ideal s = std(singid(i));}
+
+   e = isnor(i);
+
+   d = mydimension(s);
+
+
+
+   if (e == 1 && d == -1)
+
+   { 
+
+//---S/i is normal and regular
+
+       ideal lip = i;
+
+       if (defined(liph) == 0)
+
+       { ideal liph = maxideal(1);}
+
+       export(lip);
+
+       endRings[size(endRings)+1] = S;
+
+     //---collecting all regular charts
+
+       kill S;
+
+   }
+
+
+
+   if (e == 1 && d > -1)
+
+   {
+
+//---S/i is normal and singular
+
+       list b = blowUp2(i,s);
+
+       int r = size(b);
+
+       int k;
+
+       for (k=1;k<=r;k++)
+
+       {
+
+          def Newr1 = b[k];
+
+          setring Newr1;
+
+          def path = imap(S,path);
+
+          path = path,[-1,ii,k];           
+      //---path=path,[blow up,vertex,branch of vertex]
+          matrix Path = matrix(path);
+          export(Path);
+
+          allRings[size(allRings)+1] = Newr1;
+
+          ideal is = std(Jnew);
+
+          ideal slis = std(singid(is));
+
+          E[size(E)+1] = eD;
+
+          int tt = transversalT(Jnew,E);
+
+
+
+          if (tt == 1)
+
+          { ideal i = Jnew;}
+
+      //---intersection of Jnew and exceptional divisors ist transversal
+
+      //--- we can continue with Jnew
+
+          else
+
+          { ideal i = myintersect(Jnew,myradical(eD));}
+
+
+
+          map phi = S,bM;
+
+          if (defined(liph))
+
+          { ideal liph = phi(liph);}
+
+          else
+
+          { ideal liph = maxideal(1);}
+
+          export(liph);
+
+          kill Newr1,E,tt;
+
+          setring S;
+
+       }
+
+
+
+       kill b,k,r,S;
+
+   }
+
+
+
+
+
+   if (e == 0)
+
+   {
+
+//---S/i is not normal
+
+
+
+       if (charstr(S) == "integer")
+
+       {  
+
+          "integer";
+
+          list n = normalZ(i);
+
+          int rr = size(n);
+
+          int kk;
+
+          for (kk=1;kk<=rr;kk++)
+
+          {                      
+
+             def NewrZ = n[kk][1];                         
+
+             setring NewrZ;
+
+             def path = imap(S,path);
+
+             path = path,[1,ii,kk];                   
+          //---path = path,[normalization, vertex, branch of vertex]
+             matrix Path = matrix(path);
+             export(Path);
+
+             map phi = S,normap;
+
+             if (defined(liph))
+
+             { ideal liph = phi(liph);}
+
+             else
+
+             { ideal liph = normap;}
+
+             ideal i = std(nor);
+
+             allRings[size(allRings)+1] = NewrZ;
+
+          } 
+
+          kill NewrZ;
+
+          setring S;
+
+       }
+
+       else
+
+       {
+
+    //---normalization over fields
+
+          if (char(S) == 0)
+
+          { list n = normal(i);}
+
+          else
+
+          { list n = normalP(i,"withRing");}
+
+
+
+          int rr=size(n[1]);
+
+          int kk;
+
+          for (kk=1;kk<=rr;kk++)
+
+          {                      
+
+             def Newrk = n[1][kk];                         
+
+             setring Newrk;
+
+             def path = imap(S,path);
+
+             path = path,[1,ii,kk];             
+          //---path = path,[normalization, vertex, branch of vertex]
+             matrix Path = matrix(path);
+             export(Path);
+
+             map nor = S,normap;
+
+             if (defined(liph))
+
+             { ideal liph = nor(liph);}
+
+             else
+
+             { ideal liph = normap;}
+
+
+
+             if (char(S) == 0)
+
+             {  
+
+          //---eliminate needless variables from the normalized ring        
+
+                int homo = homog(norid);
+
+                intvec rw; 
+
+
+
+                if(homo == 1)
+
+                { rw = ringweights(Newrk);}
+
+
+
+                list L = substpart(norid,normap,homo,rw);
+
+                def newrk = L[1];
+
+                setring newrk;
+
+                allRings[size(allRings)+1] = newrk;
+
+                ideal i = std(endid);
+
+                export(i);
+
+                map phi = Newrk,endphi;
+
+                ideal liph = phi(liph);
+
+                def Path = imap(Newrk,Path);
+
+                export(Path);
+
+                kill homo,rw,phi,newrk;
+
+             }
+
+             else
+
+             { 
+
+         //---elimination of variables already in "normalP"
+
+                ideal i = std(norid);
+
+                allRings[size(allRings)+1] = Newrk;
+
+             } 
+
+
+
+             export(liph);
+
+             kill Newrk,L;
+
+             setring S;
+
+          }
+
+       }
+
+       kill kk,n,rr;
+
+    }
+
+ }  
+
+ 
+
+ list result = endRings,allRings;
+
+ return(result);
+
+};
+// ** redefining lipmanresolve **
+> list l=lipmanresolve(i);
+// ** redefining l **
+// ** redefining path
+// ** redefining Path
+// ** redefining S **
+   ? identifier path not found in S
+   ? error occurred in or before ::lipmanresolve line 126: `          def path = imap(S,path);`
+   ? leaving ::lipmanresolve
+   skipping text from `;` error at token `)`
+> proc lipmanresolve(ideal i)
+
+"USAGE:   lipmanresolve(i);
+
+@*        i = ideal defining a scheme S = spec(Z[x_1,..,x_n]/i) or a 
+
+@*        variety V k[x_1,..,x_n)/i with k a field of char >= 0
+
+ASSUME:   i = prime ideal of dimension 2 over the integers or a field                               
+
+RETURN:   list of rings, [1] the charts of the regular model of S or V, and
+
+@*        [2] all rings occurring in the computation
+
+EXAMPLE:  example lipmanresolve; shows an example"
+
+{    
+
+//----------------------------------------------------------------------------
+
+// Initialization and sanity checks
+
+//----------------------------------------------------------------------------
+
+   
+
+ //--- assertion: i radical ideal and dim(i)=2
+
+   i = std(i);
+
+   int dbg = printlevel - voice + 2;
+
+
+
+   if(mydimension(i) != 2)
+
+   { "WARNING! The input is not of dimension 2!";
+
+      "The result may be wrong.";}
+
+
+
+   def BAS = basering;
+
+   ideal irad = myradical(i);
+
+
+
+   if(size(reduce(irad,std(i))) != 0)
+
+   { "WARNING! The input is not reduced!";
+
+     "We will continue with the reduced part of input";
+
+      i=irad;}
+
+
+
+   list allRings,endRings,E;
+
+   allRings[1] = BAS;
+
+   int e,d,ii;
+
+   module path = [0,0,1]; 
+//---path = [start, vertex, branch of vertex]
+   matrix Path = matrix(path);
+
+   export(path,Path);
+
+
+
+ while(ii < size(allRings))
+
+ {
+
+//--- normalizations and blow-ups until we have a regular model
+
+   ii++;
+
+   def S = allRings[ii];
+
+   setring S;
+
+   if (size(i) == 0)
+
+   { ideal s = 1;}
+
+   else
+
+   { ideal s = std(singid(i));}
+
+   e = isnor(i);
+
+   d = mydimension(s);
+
+
+
+   if (e == 1 && d == -1)
+
+   { 
+
+//---S/i is normal and regular
+
+       ideal lip = i;
+
+       if (defined(liph) == 0)
+
+       { ideal liph = maxideal(1);}
+
+       export(lip);
+
+       endRings[size(endRings)+1] = S;
+
+     //---collecting all regular charts
+
+       kill S;
+
+   }
+
+
+
+   if (e == 1 && d > -1)
+
+   {
+
+//---S/i is normal and singular
+
+       list b = blowUp2(i,s);
+
+       int r = size(b);
+
+       int k;
+
+       for (k=1;k<=r;k++)
+
+       {
+
+          def Newr1 = b[k];
+
+          setring Newr1;
+
+          def path = imap(S,path);
+
+          path = path,[-1,ii,k];           
+      //---path=path,[blow up,vertex,branch of vertex]
+          matrix Path = matrix(path);
+          export(path,Path);
+
+          allRings[size(allRings)+1] = Newr1;
+
+          ideal is = std(Jnew);
+
+          ideal slis = std(singid(is));
+
+          E[size(E)+1] = eD;
+
+          int tt = transversalT(Jnew,E);
+
+
+
+          if (tt == 1)
+
+          { ideal i = Jnew;}
+
+      //---intersection of Jnew and exceptional divisors ist transversal
+
+      //--- we can continue with Jnew
+
+          else
+
+          { ideal i = myintersect(Jnew,myradical(eD));}
+
+
+
+          map phi = S,bM;
+
+          if (defined(liph))
+
+          { ideal liph = phi(liph);}
+
+          else
+
+          { ideal liph = maxideal(1);}
+
+          export(liph);
+
+          kill Newr1,E,tt;
+
+          setring S;
+
+       }
+
+
+
+       kill b,k,r,S;
+
+   }
+
+
+
+
+
+   if (e == 0)
+
+   {
+
+//---S/i is not normal
+
+
+
+       if (charstr(S) == "integer")
+
+       {  
+
+          "integer";
+
+          list n = normalZ(i);
+
+          int rr = size(n);
+
+          int kk;
+
+          for (kk=1;kk<=rr;kk++)
+
+          {                      
+
+             def NewrZ = n[kk][1];                         
+
+             setring NewrZ;
+
+             def path = imap(S,path);
+
+             path = path,[1,ii,kk];                   
+          //---path = path,[normalization, vertex, branch of vertex]
+             matrix Path = matrix(path);
+             export(path,Path);
+
+             map phi = S,normap;
+
+             if (defined(liph))
+
+             { ideal liph = phi(liph);}
+
+             else
+
+             { ideal liph = normap;}
+
+             ideal i = std(nor);
+
+             allRings[size(allRings)+1] = NewrZ;
+
+          } 
+
+          kill NewrZ;
+
+          setring S;
+
+       }
+
+       else
+
+       {
+
+    //---normalization over fields
+
+          if (char(S) == 0)
+
+          { list n = normal(i);}
+
+          else
+
+          { list n = normalP(i,"withRing");}
+
+
+
+          int rr=size(n[1]);
+
+          int kk;
+
+          for (kk=1;kk<=rr;kk++)
+
+          {                      
+
+             def Newrk = n[1][kk];                         
+
+             setring Newrk;
+
+             def path = imap(S,path);
+
+             path = path,[1,ii,kk];             
+          //---path = path,[normalization, vertex, branch of vertex]
+             matrix Path = matrix(path);
+             export(Path);
+
+             map nor = S,normap;
+
+             if (defined(liph))
+
+             { ideal liph = nor(liph);}
+
+             else
+
+             { ideal liph = normap;}
+
+
+
+             if (char(S) == 0)
+
+             {  
+
+          //---eliminate needless variables from the normalized ring        
+
+                int homo = homog(norid);
+
+                intvec rw; 
+
+
+
+                if(homo == 1)
+
+                { rw = ringweights(Newrk);}
+
+
+
+                list L = substpart(norid,normap,homo,rw);
+
+                def newrk = L[1];
+
+                setring newrk;
+
+                allRings[size(allRings)+1] = newrk;
+
+                ideal i = std(endid);
+
+                export(i);
+
+                map phi = Newrk,endphi;
+
+                ideal liph = phi(liph);
+
+                def Path = imap(Newrk,Path);
+
+                export(path,Path);
+
+                kill homo,rw,phi,newrk;
+
+             }
+
+             else
+
+             { 
+
+         //---elimination of variables already in "normalP"
+
+                ideal i = std(norid);
+
+                allRings[size(allRings)+1] = Newrk;
+
+             } 
+
+
+
+             export(liph);
+
+             kill Newrk,L;
+
+             setring S;
+
+          }
+
+
+       }
+
+       kill kk,n,rr;
+
+    }
+
+ }  
+
+ 
+
+ list result = endRings,allRings;
+
+ return(result);
+
+};
+// ** redefining lipmanresolve **
+> list l=lipmanresolve(i);
+// ** redefining l **
+// ** redefining path
+// ** redefining Path
+   ? cannot export
+   ? error occurred in or before ::lipmanresolve line 325: `                export(path,Path);`
+   ? leaving ::lipmanresolve
+   skipping text from `;` error at token `)`
+> 
